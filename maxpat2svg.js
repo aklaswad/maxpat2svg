@@ -30,7 +30,7 @@ class Box {
     }
   }
 
-  svg () {
+  svg (patcher) {
     const g = document.createElementNS("http://www.w3.org/2000/svg", "g")
     const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect")
     g.appendChild(rect);
@@ -68,6 +68,11 @@ class Box {
     textElem.setAttribute("height", this.height)
     const html = document.createElementNS("http://www.w3.org/1999/xhtml", 'html')
     const div = document.createElement('div')
+    if ( patcher.patcher.default_fontname !== this.box.fontname
+      || patcher.patcher.default_fontsize !== this.box.fontsize
+    ) {
+      div.setAttribute('style', `font-size: ${this.box.fontsize}px; font-family: '${this.box.fontname};`)
+    }
     div.setAttribute('width', '100%')
     div.setAttribute('height', '100%')
     div.innerText = this.box.text || ''
@@ -176,7 +181,7 @@ class MaxPat {
     `
     svg.appendChild(style)
     for ( const box of Object.values(this.boxes) ) {
-      svg.appendChild(box.svg())
+      svg.appendChild(box.svg(this))
     }
     for ( const line of this.lines ) {
       const sourceBox = this.boxes[line.patchline.source[0]];
