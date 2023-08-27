@@ -11,7 +11,7 @@ Generate cheep SVG copy from `*.maxpat` file, and help showing graphical diff fo
 
 # Install for local diff
 
- 1. Clone this repository to your local
+ 1. Clone this repository to your local machine
  2. Add this section to `~/.gitconfig` or project's `.git/config`
 
 ```gitconfig
@@ -19,7 +19,7 @@ Generate cheep SVG copy from `*.maxpat` file, and help showing graphical diff fo
   cmd = '/path/to/maxpat2svg/diff.pl' $LOCAL $REMOTE
 ```
 
- 3. Run diff from `git difftool`
+ 3. Run diff via `git difftool`
 
 ```
 $ git difftool -d -t max
@@ -37,6 +37,10 @@ Currently, only these URL forms are supported.
 
  - https://github.com/{Owner}/{Repo}/commit/{CommitHash}
 
-Here is a bookmarklet to open online diff.html hosted on GitHub pages.
+Here is a bookmarklet to open online diff.html hosted on GitHub pages. Copy this snippet and save as bookmark.
 
- - [maxdiff](javascript:window.open('https://aklaswad.github.io/maxpat2svg/diff.html?url=' + location.href, '_blank'))
+```
+javascript:window.open('https://aklaswad.github.io/maxpat2svg/diff.html?url=' + location.href, '_blank')
+```
+
+Or go to https://aklaswad.github.io/maxpat2svg/ for Drag'n'drop.
