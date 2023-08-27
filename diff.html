@@ -238,6 +238,15 @@
           wrapper.appendChild(createEmptyBlock(name, id, 'Not supported'))
         }
       }
+      if ( document.location.hash ) {
+        setTimeout( function () {
+          const id = document.location.hash.replace(/^#/, '')
+          const to = document.getElementById(id)
+          if ( to ) {
+            to.scrollIntoView()
+          }
+        }, 400)
+      }
     }
 
     function createEmptyBlock (name, id, message) {
