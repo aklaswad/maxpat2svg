@@ -1,5 +1,5 @@
-const PORT_RADIUS = 4
-const PORT_MARGIN = 5
+const PORT_RADIUS = 3
+const PORT_MARGIN = 6
 const LINE_R = 10
 
 const BoxDecorator = {
@@ -118,14 +118,14 @@ class Box {
 
   inlet (nth) {
     return {
-      x: this.x + PORT_MARGIN + PORT_RADIUS + nth * (this.width - PORT_RADIUS * 2 - PORT_MARGIN * 2) / Math.max(1, this.numInlets - 1),
+      x: this.x + PORT_MARGIN + PORT_RADIUS + nth * (this.width - PORT_RADIUS * 2 - PORT_MARGIN * 2 - 1) / Math.max(1, this.numInlets - 1),
       y: this.y
     }
   }
 
   outlet (nth) {
     return {
-      x: this.x + PORT_MARGIN + PORT_RADIUS + nth * (this.width - PORT_RADIUS * 2 - PORT_MARGIN * 2) / Math.max(1, this.numOutlets - 1),
+      x: this.x + PORT_MARGIN + PORT_RADIUS + nth * (this.width - PORT_RADIUS * 2 - PORT_MARGIN * 2 - 1) / Math.max(1, this.numOutlets - 1),
       y: this.y + this.height
     }
   }
@@ -170,7 +170,6 @@ class Box {
       const arc = document.createElementNS("http://www.w3.org/2000/svg", "path")
       arc.setAttribute('d', `M ${portPos.x - PORT_RADIUS} ${portPos.y} A ${PORT_RADIUS} ${PORT_RADIUS} 0 0 0 ${portPos.x + PORT_RADIUS} ${portPos.y}`)
       arc.classList.add('inlet')
-      arc.setAttribute('stroke-width', 2)
       g.appendChild(arc)
     }
     for (let i = 0; i < this.numOutlets; i++) {
@@ -178,7 +177,6 @@ class Box {
       const arc = document.createElementNS("http://www.w3.org/2000/svg", "path")
       arc.setAttribute('d', `M ${portPos.x - PORT_RADIUS} ${portPos.y} A ${PORT_RADIUS} ${PORT_RADIUS} 0 0 1 ${portPos.x + PORT_RADIUS} ${portPos.y}`)
       arc.classList.add('outlet')
-      arc.setAttribute('stroke-width', 2)
       g.appendChild(arc)
     }
 
