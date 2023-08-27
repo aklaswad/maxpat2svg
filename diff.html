@@ -71,8 +71,13 @@
       pointer-events: none;
       background: rgba(0,0,0,0.0);
     }
+
     .red-green .svg-wrapper-left .patchline {
       stroke: rgba(128, 54, 80, 0.5);
+    }
+
+    .red-green .svg-wrapper-left .decoration-fill {
+      fill: rgba(128, 54, 80, 0.5);
     }
 
     .red-green .svg-wrapper-left g {
@@ -96,6 +101,10 @@
 
     .red-green .svg-wrapper-right .patchline {
       stroke: rgba(54, 128, 80, 0.5);
+    }
+
+    .red-green .svg-wrapper-right .decoration-fill {
+      fill: rgba(54, 128, 80, 0.5);
     }
 
     g.box:hover {
@@ -178,7 +187,6 @@
       const workers = []
       for (const idx in content.files ) {
         const file = content.files[idx]
-        console.log(file)
         workers.push( (async () => files[idx]['left']  = await fetchContent(owner, repo, file.filename, leftRef) )() )
         workers.push( (async () => files[idx]['right'] = await fetchContent(owner, repo, file.filename, rightRef))() )
         files[idx]['name'] = file.filename

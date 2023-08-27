@@ -2,6 +2,106 @@ const PORT_RADIUS = 4
 const PORT_MARGIN = 5
 const LINE_R = 10
 
+const BoxDecorator = {
+  comment: function (_box, _g, rect) {
+    rect.setAttribute("stroke-dasharray", "2,2")
+  },
+  message: function (_box, _g, rect) {
+    rect.setAttribute("rx", "5")
+    rect.setAttribute("ry", "5")
+  },
+  newobj: function (box, g, _rect) {
+    const lineTop = document.createElementNS("http://www.w3.org/2000/svg", "line")
+    lineTop.setAttribute("x1", box.x)
+    lineTop.setAttribute("y1", box.y + 3)
+    lineTop.setAttribute("x2", box.x + box.width)
+    lineTop.setAttribute("y2", box.y + 3)
+    g.appendChild(lineTop)
+    const lineBottom = document.createElementNS("http://www.w3.org/2000/svg", "line")
+    lineBottom.setAttribute("x1", box.x)
+    lineBottom.setAttribute("y1", box.y + box.height - 3)
+    lineBottom.setAttribute("x2", box.x + box.width)
+    lineBottom.setAttribute("y2", box.y + box.height - 3)
+    g.appendChild(lineBottom)
+  },
+  inlet: function (box, g, _rect) {
+    const decoration = document.createElementNS("http://www.w3.org/2000/svg", "path")
+    decoration.classList.add('decoration-fill')
+    decoration.setAttribute('d', `M ${box.x + box.width * 0.2} ${box.y + box.height / 2} L ${box.x + box.width * 0.8} ${box.y + box.height / 2} L ${box.x + box.width / 2} ${box.y + box.height * 0.9} Z`)
+    g.appendChild(decoration)
+  },
+  outlet: function (box, g, _rect) {
+    const decoration = document.createElementNS("http://www.w3.org/2000/svg", "path")
+    decoration.classList.add('decoration-fill')
+    decoration.setAttribute('d', `M ${box.x + box.width * 0.2} ${box.y + box.height * 0.1} L ${box.x + box.width * 0.8} ${box.y + box.height * 0.1} L ${box.x + box.width / 2} ${box.y + box.height / 2} Z`)
+    g.appendChild(decoration)
+  },
+  number: function (box, g, _rect) {
+    const decoration = document.createElementNS("http://www.w3.org/2000/svg", "path")
+    decoration.classList.add('decoration-fill')
+    const margin = box.height * 0.2
+    decoration.setAttribute('d', `M ${box.x + margin} ${box.y + margin} L ${box.x + box.height / 2} ${box.y + box.height / 2} L ${box.x + margin} ${box.y + box.height - margin} Z`)
+    g.appendChild(decoration)
+    return {rect: {x: box.x + box.height / 2, y: box.y, width: box.width - (box.height / 2), height: box.height }, text: '0'}
+  },
+  flonum: function (box, g, _rect) {
+    const decoration = document.createElementNS("http://www.w3.org/2000/svg", "path")
+    decoration.classList.add('decoration-fill')
+    const margin = box.height * 0.2
+    decoration.setAttribute('d', `M ${box.x + margin} ${box.y + margin} L ${box.x + box.height / 2} ${box.y + box.height / 2} L ${box.x + margin} ${box.y + box.height - margin} Z`)
+    g.appendChild(decoration)
+    return {rect: {x: box.x + box.height / 2, y: box.y, width: box.width - (box.height / 2), height: box.height }, text: '0.0'}
+  },
+  'number~': function (box, g, _rect) {
+    // TODO: svg design
+    return {text: '~ 0.0'}
+  },
+  toggle: function (box, g, _rect) {
+    const decoration = document.createElementNS("http://www.w3.org/2000/svg", "path")
+    decoration.classList.add('decoration-fill')
+    const w = box.height * 0.05 // width of line
+    const w2 = w * 2
+    const p = box.height * 0.2 // padding
+    const cx = box.x + box.width / 2
+    const cy = box.y + box.height / 2
+    decoration.setAttribute('d',
+        `M ${cx} ${cy - w2} `
+      + `L ${box.x + box.width - p - w} ${box.y              + p - w} L ${box.x + box.width - p + w} ${box.y              + p + w} L ${cx + w2} ${cy} `
+      + `L ${box.x + box.width - p + w} ${box.y + box.height - p - w} L ${box.x + box.width - p - w} ${box.y + box.height - p + w} L ${cx} ${cy + w2} `
+      + `L ${box.x             + p + w} ${box.y + box.height - p + w} L ${box.x             + p - w} ${box.y + box.height - p - w} L ${cx - w2} ${cy} `
+      + `L ${box.x             + p - w} ${box.y              + p + w} L ${box.x             + p + w} ${box.y              + p - w} Z`
+    )
+    g.appendChild(decoration)
+  },
+  button: function (box, g, _rect) {
+    const decoration = document.createElementNS("http://www.w3.org/2000/svg", "path")
+    decoration.classList.add('decoration-fill')
+    // Magic number for drawing circle by bezier
+    const f = 0.55228
+    const r = 0.4 * box.height
+    const r2 = 0.3 * box.height
+    const fr = f * r
+    const fr2 = f * r2
+    const cx = box.x + box.width / 2
+    const cy = box.y + box.height / 2
+    decoration.setAttribute('d',
+        `M ${cx} ${cy - r} `
+      + `C ${cx + fr} ${cy -  r} ${cx +  r} ${cy - fr} ${cx + r} ${cy    }`
+      + `C ${cx +  r} ${cy + fr} ${cx + fr} ${cy +  r} ${cx    } ${cy + r}`
+      + `C ${cx - fr} ${cy +  r} ${cx -  r} ${cy + fr} ${cx - r} ${cy    }`
+      + `C ${cx -  r} ${cy - fr} ${cx - fr} ${cy -  r} ${cx    } ${cy - r}`
+      + `M ${cx} ${cy - r2} `
+      + `C ${cx - fr2} ${cy -  r2} ${cx -  r2} ${cy - fr2} ${cx - r2} ${cy     }`
+      + `C ${cx -  r2} ${cy + fr2} ${cx - fr2} ${cy +  r2} ${cx     } ${cy + r2}`
+      + `C ${cx + fr2} ${cy +  r2} ${cx +  r2} ${cy + fr2} ${cx + r2} ${cy     }`
+      + `C ${cx +  r2} ${cy - fr2} ${cx + fr2} ${cy -  r2} ${cx     } ${cy - r2}`
+
+
+    )
+    g.appendChild(decoration)
+  },
+}
+
 class Box {
   constructor (data) {
     this.box = data.box
@@ -42,30 +142,15 @@ class Box {
     g.classList.add('box')
     // TODO: move to CSS
 
-    if (this.box.maxclass === "comment") {
-        rect.setAttribute("stroke-dasharray", "2,2")
-    } else if (this.box.maxclass === "message") {
-        rect.setAttribute("rx", "5")
-        rect.setAttribute("ry", "5")
-    } else if ( this.box.maxclass === 'newobj' ) {
-        const lineTop = document.createElementNS("http://www.w3.org/2000/svg", "line")
-        lineTop.setAttribute("x1", this.x)
-        lineTop.setAttribute("y1", this.y + 3)
-        lineTop.setAttribute("x2", this.x + this.width)
-        lineTop.setAttribute("y2", this.y + 3)
-        g.appendChild(lineTop)
-        const lineBottom = document.createElementNS("http://www.w3.org/2000/svg", "line")
-        lineBottom.setAttribute("x1", this.x)
-        lineBottom.setAttribute("y1", this.y + this.height - 3)
-        lineBottom.setAttribute("x2", this.x + this.width)
-        lineBottom.setAttribute("y2", this.y + this.height - 3)
-        g.appendChild(lineBottom)
-    }
+    const decorator = BoxDecorator[(this.box.maxclass || '').toLowerCase()]
+    const decorated = decorator ? (decorator(this, g, rect) || {}) : {}
+
     const textElem = document.createElementNS("http://www.w3.org/2000/svg", "foreignObject")
-    textElem.setAttribute("x", this.x)
-    textElem.setAttribute("y", this.y)
-    textElem.setAttribute("width", this.width)
-    textElem.setAttribute("height", this.height)
+    const innerRect = decorated.rect || this
+    textElem.setAttribute("x", innerRect.x)
+    textElem.setAttribute("y", innerRect.y)
+    textElem.setAttribute("width", innerRect.width)
+    textElem.setAttribute("height", innerRect.height)
     const html = document.createElementNS("http://www.w3.org/1999/xhtml", 'html')
     const div = document.createElement('div')
     if ( patcher.patcher.default_fontname !== this.box.fontname
@@ -75,7 +160,7 @@ class Box {
     }
     div.setAttribute('width', '100%')
     div.setAttribute('height', '100%')
-    div.innerText = this.box.text || ''
+    div.innerText = decorated.text || this.box.text || ''
     html.appendChild(div)
     textElem.appendChild(html)
     g.appendChild(textElem)
