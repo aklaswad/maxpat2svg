@@ -98,19 +98,19 @@ class Box {
 
 class MaxPat {
   constructor (patcher) {
+    this.boxes = {}
+    this.children = []
     if ( !patcher.patcher ) {
       this.empty = true
       this.rect = [0,0,100,100]
       this.width = 140
       this.height = 140
       this.patcher = {}
-      this.boxes = {}
       this.lines = []
       return
     }
     this.patcher = patcher.patcher
     const boxList = patcher.patcher.boxes
-    this.boxes = {}
     let minX = 1000000, minY = 1000000, maxX = -1000000, maxY = -1000000;
     for ( const boxData of boxList ) {
       const box = new Box(boxData)
@@ -118,12 +118,24 @@ class MaxPat {
       if ( box.y < minY ) minY = box.y
       if ( box.x + box.width > maxX ) maxX = box.x + box.width
       if ( box.y + box.height > maxY ) maxY = box.y + box.height
+      if ( boxData.box?.patcher ) {
+        const child = new MaxPat(boxData.box)
+        const childName = boxData.box.text.replace(/^p(atcher)?\s+/i, '')
+        this.children.push({ name: childName || boxData.box.id, patcher: child })
+      }
       this.boxes[box.id] = box
     }
     this.rect = [ minX - 20, minY - 20, maxX + 20, maxY + 20 ]
     this.width = maxX - minX + 40
     this.height = maxY - minY + 40
     this.lines = patcher.patcher.lines
+  }
+
+  subPatchers (parentName = '') {
+    return [
+      ...this.children.map( child => ({ name: parentName + '/' + child.name, patcher: child.patcher }) ),
+      ...this.children.reduce( (acc, cur) => [ ...acc, ...cur.patcher.subPatchers(parentName + '/' + cur.name)], [])
+    ]
   }
 
   gatherViewBoxWith(anotherPatcher) {
