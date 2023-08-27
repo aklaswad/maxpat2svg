@@ -1,0 +1,210 @@
+<html>
+  <style>
+    body {
+      background: #eee;
+    }
+
+    body, ul, li, div {
+      margin: 0;
+      padding: 0;
+      font-size: 12px;
+    }
+
+    ul, ol {
+      list-style: none;
+    }
+
+    a, a:hover, a:active {
+      color: #000;
+      font-weight: bold;
+    }
+
+    #menu {
+      position: sticky;
+      top: 0;
+      left: 0;
+      width: 300px;
+      padding: 1rem;
+      z-index: 100;
+      overflow: hidden;
+    }
+
+    #wrapper {
+      padding-left: 300px;
+    }
+
+    .patcher-diff {
+      position: relative;
+      top: 0;
+      left: 0;
+      display: block;
+    }
+
+    .patcher-diff h2 {
+      position: sticky;
+      top: 0;
+      left: 0;
+      padding: 3px;
+      color: #333;
+      background: rgba(128,128,128,0.2);
+    }
+
+    .svg-wrapper {
+      position: absolute;
+      top: 50px;
+      left: 0;
+      overflow: visible;
+    }
+
+    .svg-wrapper-left {
+      z-index: 2;
+      stroke: rgba(100,100,100,0.3);
+      color: #666;
+      background: #fff;
+      border: 1px solid #a88;
+    }
+
+    .red-green .svg-wrapper-left {
+      /*mix-blend-mode: exclusion;*/
+      stroke: #841850;
+      color:  #841850;
+      pointer-events: none;
+      background: rgba(0,0,0,0.0);
+    }
+    .red-green .svg-wrapper-left .patchline {
+      stroke: rgba(128, 54, 80, 0.5);
+    }
+
+    .red-green .svg-wrapper-left g {
+      pointer-events: auto;
+    }
+
+    .svg-wrapper-right {
+      z-index: 1;
+      stroke: rgba(100,100,100,0.3);
+      color: #666;
+      background: #fff;
+      border: 1px solid #8a8;
+    }
+
+    .red-green .svg-wrapper-right {
+      z-index: 1;
+      stroke: #188450;
+      color:  #188450;
+      background: rgba(0,0,0,0.0);
+    }
+
+    .red-green .svg-wrapper-right .patchline {
+      stroke: rgba(54, 128, 80, 0.5);
+    }
+
+    g.box:hover {
+      stroke: #000;
+      color: #000;
+    }
+
+    g.box:hover .box-rect {
+      fill: #cde;
+    }
+
+    #viewer-control {
+      position: fixed;
+      width: 300px;
+      padding: 10px;
+      border: 1px solid #999;
+      border-radius: 5px;
+      left: calc(50vw - 150px);
+      background: rgba(168,170,172, 0.8);
+      bottom: 50px;
+      z-index: 100;
+    }
+
+    #left-right-ratio {
+      position: absolute;
+      width: 240px;
+      left: 30px;
+      bottom: 10px;
+    }
+  </style>
+  <div id="menu">
+    <ul>
+  <!-- __ITEMS__ -->
+    </ul>
+  </div>
+  <div id="wrapper" class="red-green">
+  </div>
+
+  <div id="viewer-control">
+    <input id="left-right-ratio" type="range" min="0" max="1000" step="1"><br>
+  </div>
+
+  <script>
+    <!-- __MAXPAT2SVG__ -->
+  </script>
+  <script>
+    function renderDiffItems () {
+      const items = document.querySelectorAll('.diff-item')
+      const wrapper = document.querySelector('#wrapper')
+      for ( const item of items ) {
+        const link = document.createElement('a')
+        const name = item.dataset.name
+        const id = name.replace(/\W/, '-')
+        link.textContent = name
+        link.setAttribute('href', '#' + id)
+        item.appendChild(link)
+        const leftPatcher = new MaxPat(JSON.parse(item.dataset.left))
+        const rightPatcher = new MaxPat(JSON.parse(item.dataset.right))
+        const block = createDiffBlock(name, id, leftPatcher, rightPatcher)
+        wrapper.appendChild(block)
+      }
+    }
+
+    function createDiffBlock (name, id, leftPatcher, rightPatcher) {
+      leftPatcher.gatherViewBoxWith(rightPatcher)
+      const patcherDiff = document.createElement('div')
+      patcherDiff.classList.add('patcher-diff')
+      patcherDiff.setAttribute('id', id)
+      patcherDiff.setAttribute('style', 'height: ' + (leftPatcher.height + 100) + 'px;')
+
+      const header = document.createElement('h2')
+      header.textContent = name
+      patcherDiff.appendChild(header)
+
+      const leftWrapper = document.createElement('div')
+      leftWrapper.classList.add('svg-wrapper-left')
+      leftWrapper.setAttribute('width', leftPatcher.width)
+      leftWrapper.setAttribute('height', leftPatcher.height + 100)
+      leftWrapper.setAttribute('style', 'opacity: 0.6;')
+      leftWrapper.classList.add('svg-wrapper')
+      leftWrapper.appendChild(leftPatcher.svg())
+      patcherDiff.appendChild(leftWrapper)
+
+      const rightWrapper = document.createElement('div')
+      rightWrapper.classList.add('svg-wrapper-right')
+      rightWrapper.setAttribute('width', rightPatcher.width)
+      rightWrapper.setAttribute('height', rightPatcher.height + 100)
+      rightWrapper.setAttribute('style', 'opacity: 0.6;')
+      rightWrapper.classList.add('svg-wrapper')
+      rightWrapper.appendChild(rightPatcher.svg())
+
+      patcherDiff.appendChild(rightWrapper)
+      return patcherDiff
+    }
+
+    window.addEventListener("load", (event) => {
+      renderDiffItems()
+      const slider = document.getElementById('left-right-ratio')
+      slider.addEventListener('input', function changeRatio (evt) {
+        const value = parseInt(evt.target.value)
+        const leftWrappers = document.querySelectorAll('.svg-wrapper-left')
+        for ( const leftWrapper of leftWrappers ) {
+          leftWrapper.setAttribute( 'style', 'opacity: ' + Math.min(1.0, value * 1.2 / 1000))
+        }
+        const rightWrappers = document.querySelectorAll('.svg-wrapper-right')
+        for ( const rightWrapper of rightWrappers ) {
+          rightWrapper.setAttribute('style', 'opacity: ' + Math.min(1.0, (1000 - value) * 1.2 / 1000))
+        }
+      })
+    });
+  </script>
+</html>
