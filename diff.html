@@ -127,7 +127,7 @@
     }
   </style>
   <div id="menu">
-    <ul>
+    <ul id="files">
   <!-- __ITEMS__ -->
     </ul>
   </div>
@@ -138,13 +138,85 @@
     <input id="left-right-ratio" type="range" min="0" max="1000" step="1"><br>
   </div>
 
+  <script src="./maxpat2svg.js"></script>
   <script>
-    <!-- __MAXPAT2SVG__ -->
-  </script>
-  <script>
-    function renderDiffItems () {
-      const items = document.querySelectorAll('.diff-item')
+
+    // GitHub support
+    const fetchOptionRaw = {
+    redirect: 'follow',
+    headers: {
+        'Accept': 'application/vnd.github.raw',
+        'X-GitHub-Api-Version': '2022-11-28'
+      }
+    }
+
+    const fetchOptionJSON = {
+      redirect: 'follow',
+      headers: {
+          'Accept': 'application/vnd.github+json',
+          'X-GitHub-Api-Version': '2022-11-28'
+      }
+    }
+
+    async function fetchContent (owner,repo,path,ref) {
+      let url = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`
+      if ( ref ) {
+        url = url + `?ref=${ref}`
+      }
+      const res = await fetch(url, fetchOptionRaw)
+      const content = await res.text()
+      return content
+    }
+
+    async function fetchFromCommit ( owner, repo, ref ) {
+      let url = `https://api.github.com/repos/${owner}/${repo}/commits/${ref}`
+      const res = await fetch(url, fetchOptionJSON)
+      const content = await res.json()
+      const leftRef = content.parents[0].sha
+      const rightRef = content.sha
+      const files = content.files.map( f => ({}) )
+      const workers = []
+      for (const idx in content.files ) {
+        const file = content.files[idx]
+        console.log(file)
+        workers.push( (async () => files[idx]['left']  = await fetchContent(owner, repo, file.filename, leftRef) )() )
+        workers.push( (async () => files[idx]['right'] = await fetchContent(owner, repo, file.filename, rightRef))() )
+        files[idx]['name'] = file.filename
+      }
+      await Promise.all(workers)
+      return files
+    }
+
+    async function loadFromGitHub(owner, repo, type, params) {
+      const files = await fetchFromGitHub(owner, repo, type, params)
+      if ( !files ) {
+        showZeroState()
+        return
+      }
+      const list = document.getElementById('files')
+      listItems = []
+      for ( const file of files.sort( (a,b) => a.name < b.name ? -1 : 1) ) {
+        const li = document.createElement('li')
+        li.dataset.left = file.left
+        li.dataset.right = file.right
+        li.dataset.name = file.name
+        list.appendChild(li)
+        listItems.push(li)
+      }
+      renderDiffItems(listItems)
+    }
+
+    async function fetchFromGitHub(owner, repo, type, params) {
+      switch (type) {
+        case 'commit':
+          //return [{left: '{}', right: '{}', name: 'dummy'}]
+          return await fetchFromCommit(owner,repo,params[0])
+      }
+    }
+
+    function renderDiffItems (items) {
       const wrapper = document.querySelector('#wrapper')
+      wrapper.textContent = ''
       for ( const item of items ) {
         const link = document.createElement('a')
         const name = item.dataset.name
@@ -152,11 +224,35 @@
         link.textContent = name
         link.setAttribute('href', '#' + id)
         item.appendChild(link)
-        const leftPatcher = new MaxPat(JSON.parse(item.dataset.left))
-        const rightPatcher = new MaxPat(JSON.parse(item.dataset.right))
-        const block = createDiffBlock(name, id, leftPatcher, rightPatcher)
-        wrapper.appendChild(block)
+        if ( /\.max(:?pat|help)$/.test(name) ) {
+          try {
+            const leftPatcher = new MaxPat(JSON.parse(item.dataset.left))
+            const rightPatcher = new MaxPat(JSON.parse(item.dataset.right))
+            const block = createDiffBlock(name, id, leftPatcher, rightPatcher)
+            wrapper.appendChild(block)
+          }
+          catch(e) {
+          }
+        }
+        else {
+          wrapper.appendChild(createEmptyBlock(name, id, 'Not supported'))
+        }
       }
+    }
+
+    function createEmptyBlock (name, id, message) {
+      const block = document.createElement('div')
+      block.classList.add('invalid-diff')
+      block.setAttribute('id', id)
+      block.setAttribute('style', 'height: 100px;')
+
+      const header = document.createElement('h2')
+      header.textContent = name
+      block.appendChild(header)
+      const messageBlock = document.createElement('div')
+      messageBlock.textContent = message
+      block.appendChild(messageBlock)
+      return block
     }
 
     function createDiffBlock (name, id, leftPatcher, rightPatcher) {
@@ -191,8 +287,42 @@
       return patcherDiff
     }
 
+    function showZeroState () {
+      const wrapper = document.getElementById('wrapper')
+      wrapper.textContent = 'No contents to show'
+    }
+
     window.addEventListener("load", (event) => {
-      renderDiffItems()
+      const search = document.location.search
+      const items = document.querySelectorAll('.diff-item')
+      if ( search ) {
+        const params = new URLSearchParams(search);
+        const url = params.get('url')
+        if ( url ) {
+          const regex = new RegExp('^https://github.com/([^/]+)/([^/]+)/([^/]+)/?(.*)$')
+          const match = url.match(regex, url)
+          if ( match ) {
+            const owner = match[1]
+            const repo = match[2]
+            const type = match[3]
+            const params = match[4].split('/')
+            document.getElementById('wrapper').textContent = `Going to fetch content from ${match[0]}`
+            loadFromGitHub(owner,repo,type,params)
+          }
+          else {
+            showZeroState()
+          }
+        }
+        else {
+          showZeroState()
+        }
+      }
+      else if (items.length) {
+        renderDiffItems(items)
+      }
+      else {
+        showZeroState()
+      }
       const slider = document.getElementById('left-right-ratio')
       slider.addEventListener('input', function changeRatio (evt) {
         const value = parseInt(evt.target.value)

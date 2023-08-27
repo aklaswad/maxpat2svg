@@ -12,7 +12,6 @@ my @items;
 my $WAIT_AFTER_LAUNCH = 1;
 
 chdir $FindBin::Bin;
-my $js = load_js();
 my $tmpl = load_tmpl();
 
 if ( -f $left ) {
@@ -51,16 +50,8 @@ elsif ( -d $left ) {
 
 my $items = join( '', map { $_->[1] } sort { $a->[0] cmp $b->[0] } @items );
 $tmpl =~ s/<!-- __ITEMS__ -->/$items/;
-$tmpl =~ s/<!-- __MAXPAT2SVG__ -->/$js/;
 open_tmp_html($tmpl);
 sleep $WAIT_AFTER_LAUNCH; # FIXME: Here it need to make sure browser received entire page content, but how?
-
-sub load_js {
-    open my $fh, '<', './maxpat2svg.js';
-    my $js = do { local $/; <$fh> };
-    close $fh;
-    return $js;
-}
 
 sub load_tmpl {
     open my $fh, '<', './diff.html';
