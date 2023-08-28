@@ -171,8 +171,8 @@
     }
 
     .selection-on .svg-wrapper-right .box.selected-connected {
-      stroke: #585;
-      color: #585;
+      stroke: #373;
+      color: #373;
     }
 
     .selection-on  .svg-wrapper-left .patchline.selected-connected {
@@ -180,7 +180,7 @@
     }
 
     .selection-on  .svg-wrapper-right .patchline.selected-connected {
-      stroke: #585;
+      stroke: #373;
     }
 
     #viewer-control {
@@ -480,17 +480,26 @@
       const parent = target.parentElement
       document.body.classList.add('selection-on')
       target.classList.add('selected')
-      parent.querySelectorAll(target.dataset.connections).forEach( e => e !== target && e.classList.add('selected-connected'))
+      parent.removeChild(target)
+      parent.appendChild(target)
+      const selector = target.dataset.connections
+      if ( !selector ) return
+      const connectedElements = parent.querySelectorAll(target.dataset.connections)
+      connectedElements.forEach( e => {
+        if ( e === target ) return
+        parent.removeChild(e)
+        parent.appendChild(e)
+        e.classList.add('selected-connected')
+      })
     }
 
     document.addEventListener('click', function handleClick (evt) {
       const possibles = document.elementsFromPoint(evt.clientX, evt.clientY)
+      if ( possibles.filter( e => e.matches('#viewer-control')).length ) return
       document.body.classList.remove('selection-on')
       document.querySelectorAll('.selected').forEach( e => e.classList.remove('selected'))
       document.querySelectorAll('.selected-connected').forEach( e => e.classList.remove('selected-connected'))
-      console.log(possibles)
       const leftCandidates = possibles.filter( e => e.parentElement && e.parentElement.matches('.svg-wrapper-left g.box'))
-      console.log(leftCandidates)
       const left = leftCandidates.length ? leftCandidates[0].parentElement : null
       const rightCandidates = possibles.filter( e => e.parentElement && e.parentElement.matches('.svg-wrapper-right g.box'))
       const right = rightCandidates.length ? rightCandidates[0].parentElement : null
