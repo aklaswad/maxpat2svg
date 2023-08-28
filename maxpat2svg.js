@@ -155,10 +155,11 @@ class Box {
     textElem.setAttribute("height", innerRect.height)
     const html = document.createElementNS("http://www.w3.org/1999/xhtml", 'html')
     const div = document.createElement('div')
-    if ( patcher.patcher.default_fontname !== this.box.fontname
-      || patcher.patcher.default_fontsize !== this.box.fontsize
+    if (
+         (this.box.fontname && patcher.patcher.default_fontname !== this.box.fontname )
+      || (this.box.fontsize && patcher.patcher.default_fontsize !== this.box.fontsize )
     ) {
-      div.setAttribute('style', `font-size: ${this.box.fontsize}px; font-family: '${this.box.fontname};`)
+      div.setAttribute('style', `font-size: ${this.box.fontsize || patcher.patcher.default_fontsize}px; font-family: '${this.box.fontname || patcher.patcher.default_fontname};`)
     }
     div.setAttribute('width', '100%')
     div.setAttribute('height', '100%')
