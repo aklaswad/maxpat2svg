@@ -118,6 +118,20 @@
       fill: #cde;
     }
 
+    g.box .alt-text {
+      font-style: italic;
+      text-decoration: dotted;
+    }
+
+    g.box .alt-text::before {
+      content: '('
+    }
+
+    g.box .alt-text::after {
+      content: ')'
+    }
+
+
     #viewer-control {
       position: fixed;
       width: 300px;

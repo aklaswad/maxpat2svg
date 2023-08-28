@@ -160,7 +160,14 @@ class Box {
     }
     div.setAttribute('width', '100%')
     div.setAttribute('height', '100%')
-    div.innerText = decorated.text || this.box.text || ''
+    const text = decorated.text || this.box.text
+    if ( text ) {
+      div.innerText = text
+    }
+    else if ( !decorator ) {
+      div.classList.add('alt-text')
+      div.innerText = this.box.maxclass
+    }
     html.appendChild(div)
     textElem.appendChild(html)
     g.appendChild(textElem)
