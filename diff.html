@@ -488,14 +488,14 @@
       document.body.classList.remove('selection-on')
       document.querySelectorAll('.selected').forEach( e => e.classList.remove('selected'))
       document.querySelectorAll('.selected-connected').forEach( e => e.classList.remove('selected-connected'))
-      for ( let target of possibles ) {
-        while ( target.parentElement ) {
-          if ( target.matches('g.box') ) {
-            selectBox(target)
-          }
-          target = target.parentElement
-        }
-      }
+      console.log(possibles)
+      const leftCandidates = possibles.filter( e => e.parentElement && e.parentElement.matches('.svg-wrapper-left g.box'))
+      console.log(leftCandidates)
+      const left = leftCandidates.length ? leftCandidates[0].parentElement : null
+      const rightCandidates = possibles.filter( e => e.parentElement && e.parentElement.matches('.svg-wrapper-right g.box'))
+      const right = rightCandidates.length ? rightCandidates[0].parentElement : null
+      if ( left ) selectBox(left)
+      if ( right ) selectBox(right)
     })
   </script>
 </html>
