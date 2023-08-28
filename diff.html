@@ -220,6 +220,36 @@
       left: 30px;
       bottom: 10px;
     }
+
+    #object-viewer {
+      z-index: 1000;
+      max-height: 100vh;
+      position: fixed;
+      left: 0;
+      top: 0;
+      display: grid;
+      overflow: scroll;
+      grid-template-columns: 1fr 1fr;
+    }
+
+    #object-viewer dt {
+      font-weight: bold;
+      padding: 3px;
+    }
+
+    #object-viewer dd {
+      margin-left: 10px;
+      padding: 2px 5px;
+      white-space : pre;
+    }
+
+    #object-viewer-left {
+      background-color: #faa;
+    }
+    #object-viewer-right {
+      background-color: #afa;
+    }
+
   </style>
   <div id="menu">
     <ul id="files">
@@ -233,6 +263,10 @@
     <input id="left-right-ratio" type="range" min="0" max="1000" step="1"><br>
   </div>
 
+  <div id="object-viewer">
+    <dl id="object-viewer-left"></dl>
+    <dl id="object-viewer-right"></dl>
+  </div>
   <script src="./maxpat2svg.js"></script>
   <script>
 
@@ -512,6 +546,31 @@
       })
     }
 
+    function showObjectInfo(left, right) {
+      const allKeys = Object.keys(Object.fromEntries([ ...Object.keys(left), ...Object.keys(right)].map(k => [k,1]))).sort()
+      console.log(allKeys)
+      for ( const pane of ['left', 'right'] ) {
+        document.getElementById('object-viewer-' + pane).innerHTML = ''
+      }
+      const boxes = { left, right }
+      const lists = {
+        left: document.getElementById('object-viewer-left'),
+        right: document.getElementById('object-viewer-right')
+      }
+      for ( const k of allKeys ) {
+        for ( const pane of ['left', 'right'] ) {
+          const dt = document.createElement('dt')
+          const dd = document.createElement('dd')
+          if ( boxes[pane][k] ) {
+            dt.innerText = k
+            dd.innerText = JSON.stringify(boxes[pane][k], null, 2)
+          }
+          lists[pane].appendChild(dt)
+          lists[pane].appendChild(dd)
+        }
+      }
+    }
+
     document.addEventListener('click', function handleClick (evt) {
       const possibles = document.elementsFromPoint(evt.clientX, evt.clientY)
       if ( possibles.filter( e => e.matches('#viewer-control')).length ) return
@@ -524,6 +583,11 @@
       const right = rightCandidates.length ? rightCandidates[0].parentElement : null
       if ( left ) selectBox(left)
       if ( right ) selectBox(right)
+
+      showObjectInfo(
+        JSON.parse(left ? left.dataset.box : '{}'),
+        JSON.parse(right ? right.dataset.box : '{}')
+      )
     })
   </script>
 </html>

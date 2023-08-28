@@ -210,6 +210,7 @@ class Box {
     }
 
     g.dataset.connections = connections.map(c => '.' + c).join(',')
+    g.dataset.box = JSON.stringify(this.box)
     return g
   }
 }
