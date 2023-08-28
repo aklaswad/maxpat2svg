@@ -60,7 +60,7 @@
 
     .svg-wrapper-left {
       z-index: 2;
-      stroke: rgba(100,100,100,0.3);
+      stroke: rgba(100,100,100,1.0);
       color: #666;
       background: #fff;
       border: 1px solid #a88;
@@ -75,11 +75,11 @@
     }
 
     .red-green .svg-wrapper-left .patchline {
-      stroke: rgba(128, 54, 80, 0.5);
+      stroke: rgba(128, 54, 80, 1.0);
     }
 
     .red-green .svg-wrapper-left .decoration-fill {
-      fill: rgba(128, 54, 80, 0.5);
+      fill: rgba(128, 54, 80, 1.0);
     }
 
     .red-green .svg-wrapper-left g {
@@ -88,7 +88,7 @@
 
     .svg-wrapper-right {
       z-index: 1;
-      stroke: rgba(100,100,100,0.3);
+      stroke: rgba(100,100,100,1.0);
       color: #666;
       background: #fff;
       border: 1px solid #8a8;
@@ -102,11 +102,11 @@
     }
 
     .red-green .svg-wrapper-right .patchline {
-      stroke: rgba(54, 128, 80, 0.5);
+      stroke: rgba(54, 128, 80, 1.0);
     }
 
     .red-green .svg-wrapper-right .decoration-fill {
-      fill: rgba(54, 128, 80, 0.5);
+      fill: rgba(54, 128, 80, 1.0);
     }
 
     g.box:hover {
@@ -131,6 +131,57 @@
       content: ')'
     }
 
+    .inlet.connected, .outlet.connected {
+      stroke-width: 2;
+    }
+
+    .selection-on .svg-wrapper-left g.box, .selection-on .svg-wrapper-left path.patchline {
+      stroke: #ecc;
+      color: #ecc;
+    }
+
+    .selection-on .svg-wrapper-right g.box, .selection-on .svg-wrapper-right path.patchline {
+      stroke: #cec;
+      color: #cec;
+    }
+    .selection-on .svg-wrapper-left .decoration-fill {
+      fill: #ecc;
+    }
+
+    .selection-on .svg-wrapper-right .decoration-fill {
+      fill: #cec;
+    }
+
+    .selection-on .svg-wrapper-left .box.selected {
+      stroke: #400;
+      color: #400;
+      stroke-width: 2;
+      font-weight: bold;
+    }
+    .selection-on .svg-wrapper-right .box.selected {
+      stroke: #040;
+      color: #040;
+      stroke-width: 2;
+      font-weight: bold;
+    }
+
+    .selection-on .svg-wrapper-left .box.selected-connected {
+      stroke: #855;
+      color: #855;
+    }
+
+    .selection-on .svg-wrapper-right .box.selected-connected {
+      stroke: #585;
+      color: #585;
+    }
+
+    .selection-on  .svg-wrapper-left .patchline.selected-connected {
+      stroke: #855;
+    }
+
+    .selection-on  .svg-wrapper-right .patchline.selected-connected {
+      stroke: #585;
+    }
 
     #viewer-control {
       position: fixed;
@@ -310,6 +361,7 @@
 
           }
           catch(e) {
+            console.log(e)
           }
         }
         else {
@@ -423,5 +475,27 @@
         }
       })
     });
+
+    function selectBox(target) {
+      const parent = target.parentElement
+      document.body.classList.add('selection-on')
+      target.classList.add('selected')
+      parent.querySelectorAll(target.dataset.connections).forEach( e => e !== target && e.classList.add('selected-connected'))
+    }
+
+    document.addEventListener('click', function handleClick (evt) {
+      const possibles = document.elementsFromPoint(evt.clientX, evt.clientY)
+      document.body.classList.remove('selection-on')
+      document.querySelectorAll('.selected').forEach( e => e.classList.remove('selected'))
+      document.querySelectorAll('.selected-connected').forEach( e => e.classList.remove('selected-connected'))
+      for ( let target of possibles ) {
+        while ( target.parentElement ) {
+          if ( target.matches('g.box') ) {
+            selectBox(target)
+          }
+          target = target.parentElement
+        }
+      }
+    })
   </script>
 </html>

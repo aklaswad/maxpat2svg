@@ -114,6 +114,8 @@ class Box {
     this.height = rect[3]
     this.numInlets = this.box.numinlets
     this.numOutlets = this.box.numoutlets
+    this.inlets = new Array(this.numInlets).fill(0).map( () => [] )
+    this.outlets = new Array(this.numOutlets).fill(0).map( () => [] )
   }
 
   inlet (nth) {
@@ -171,6 +173,7 @@ class Box {
     html.appendChild(div)
     textElem.appendChild(html)
     g.appendChild(textElem)
+    const connections = []
 
     for (let i = 0; i < this.numInlets; i++) {
       const portPos = this.inlet(i)
@@ -178,6 +181,15 @@ class Box {
       arc.setAttribute('d', `M ${portPos.x - PORT_RADIUS} ${portPos.y} A ${PORT_RADIUS} ${PORT_RADIUS} 0 0 0 ${portPos.x + PORT_RADIUS} ${portPos.y}`)
       arc.classList.add('inlet')
       g.appendChild(arc)
+
+      if ( this.inlets[i].length ) {
+        arc.classList.add('connected')
+      }
+
+      for ( let sig of this.inlets[i] ) {
+        g.classList.add(sig)
+        connections.push(sig)
+      }
     }
     for (let i = 0; i < this.numOutlets; i++) {
       const portPos = this.outlet(i)
@@ -185,8 +197,18 @@ class Box {
       arc.setAttribute('d', `M ${portPos.x - PORT_RADIUS} ${portPos.y} A ${PORT_RADIUS} ${PORT_RADIUS} 0 0 1 ${portPos.x + PORT_RADIUS} ${portPos.y}`)
       arc.classList.add('outlet')
       g.appendChild(arc)
+
+      if ( this.outlets[i].length ) {
+        arc.classList.add('connected')
+      }
+
+      for ( let sig of this.outlets[i] ) {
+        g.classList.add(sig)
+        connections.push(sig)
+      }
     }
 
+    g.dataset.connections = connections.map(c => '.' + c).join(',')
     return g
   }
 }
@@ -224,6 +246,15 @@ class MaxPat {
     this.width = maxX - minX + 40
     this.height = maxY - minY + 40
     this.lines = patcher.patcher.lines
+    for ( const line of this.lines ) {
+      const src = line.patchline.source
+      const dst = line.patchline.destination
+      const lineSignature = [src.join('_'), dst.join('_')].join('__')
+      const srcObj = this.boxes[src[0]]
+      srcObj.outlets[parseInt(src[1])].push( lineSignature )
+      const dstObj = this.boxes[dst[0]]
+      dstObj.inlets[parseInt(dst[1])].push( lineSignature )
+    }
   }
 
   subPatchers (parentName = '') {
@@ -270,9 +301,7 @@ class MaxPat {
     }
     `
     svg.appendChild(style)
-    for ( const box of Object.values(this.boxes) ) {
-      svg.appendChild(box.svg(this))
-    }
+
     for ( const line of this.lines ) {
       const sourceBox = this.boxes[line.patchline.source[0]];
       const destBox = this.boxes[line.patchline.destination[0]];
@@ -281,7 +310,12 @@ class MaxPat {
       const end = destBox.inlet(line.patchline.destination[1])
 
       const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-      path.classList.add('patchline')
+      const lineSignature = [
+        line.patchline.source.join('_'),
+        line.patchline.destination.join('_')
+      ].join('__')
+
+      path.classList.add( 'patchline', lineSignature )
       let d = `M ${start.x} ${start.y}`;
       let prevX = start.x
       let prevY = start.y
@@ -306,6 +340,10 @@ class MaxPat {
 
       path.setAttribute("d", d);
       svg.appendChild(path);
+    }
+
+    for ( const box of Object.values(this.boxes) ) {
+      svg.appendChild(box.svg(this))
     }
     return svg
   }
