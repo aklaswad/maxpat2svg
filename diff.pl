@@ -87,5 +87,10 @@ sub open_tmp_html {
     my ($content) = @_;
     my ($fh, $filename) = File::Temp::tempfile( 'tmp_XXXXXXXX', SUFFIX => '.html', UNLINK => 1 );
     print $fh $content;
-    `explorer $filename`;
+    if ( $^O eq 'darwin' ) {
+        `open $filename`;
+    }
+    else {
+        `explorer $filename`;
+    }
 }
