@@ -283,6 +283,7 @@ class MaxPat {
     svg.setAttribute('width', this.width)
     svg.setAttribute('height', this.height)
     svg.setAttribute('viewBox', [this.rect[0], this.rect[1], this.width, this.height].join(' '))
+    svg.classList.add('patcher-view')
     const uuid = crypto.randomUUID()
     svg.setAttribute('data-' + uuid, true)
     const style = document.createElement('style')

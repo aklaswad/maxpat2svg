@@ -421,14 +421,20 @@
           wrapper.appendChild(createEmptyBlock(name, id, 'Not supported'))
         }
       }
+      setTimeout(postRender, 100)
+    }
+
+    function postRender () {
+      document.querySelectorAll('svg.patcher-view').forEach( svg => {
+        svg.addEventListener('click', handleSVGClick)
+      })
+
       if ( document.location.hash ) {
-        setTimeout( function () {
-          const id = document.location.hash.replace(/^#/, '')
-          const to = document.getElementById(id)
-          if ( to ) {
-            to.scrollIntoView()
-          }
-        }, 400)
+        const id = document.location.hash.replace(/^#/, '')
+        const to = document.getElementById(id)
+        if ( to ) {
+          to.scrollIntoView()
+        }
       }
     }
 
@@ -571,7 +577,7 @@
       }
     }
 
-    document.addEventListener('click', function handleClick (evt) {
+    function handleSVGClick (evt) {
       const possibles = document.elementsFromPoint(evt.clientX, evt.clientY)
       if ( possibles.filter( e => e.matches('#viewer-control')).length ) return
       document.body.classList.remove('selection-on')
@@ -588,6 +594,6 @@
         JSON.parse(left ? left.dataset.box : '{}'),
         JSON.parse(right ? right.dataset.box : '{}')
       )
-    })
+    }
   </script>
 </html>
