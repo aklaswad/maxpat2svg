@@ -2,9 +2,11 @@
   <style>
     body {
       background: #eee;
+      word-break: break-all;
+      white-space: normal;
     }
 
-    body, ul, li, div {
+    body, ul, li, dl, div {
       margin: 0;
       padding: 0;
       font-size: 12px;
@@ -67,11 +69,10 @@
     }
 
     .red-green .svg-wrapper-left {
-      /*mix-blend-mode: exclusion;*/
-      stroke: #841850;
-      color:  #841850;
+      mix-blend-mode: multiply;
+      stroke: #841830;
+      color:  #841830;
       pointer-events: none;
-      background: rgba(0,0,0,0.0);
     }
 
     .red-green .svg-wrapper-left .patchline {
@@ -87,17 +88,17 @@
     }
 
     .svg-wrapper-right {
+      mix-blend-mode: multiply;
       z-index: 1;
       stroke: rgba(100,100,100,1.0);
       color: #666;
-      background: #fff;
       border: 1px solid #8a8;
     }
 
     .red-green .svg-wrapper-right {
       z-index: 1;
-      stroke: #188450;
-      color:  #188450;
+      stroke: #188430;
+      color:  #188430;
       background: rgba(0,0,0,0.0);
     }
 
@@ -146,20 +147,20 @@
     }
 
     .selection-on .svg-wrapper-left g.box, .selection-on .svg-wrapper-left path.patchline {
-      stroke: #ecc;
-      color: #ecc;
+      stroke: #fee;
+      color: #fee;
     }
 
     .selection-on .svg-wrapper-right g.box, .selection-on .svg-wrapper-right path.patchline {
-      stroke: #cec;
-      color: #cec;
+      stroke: #efe;
+      color: #efe;
     }
     .selection-on .svg-wrapper-left .decoration-fill {
-      fill: #ecc;
+      fill: #fee;
     }
 
     .selection-on .svg-wrapper-right .decoration-fill {
-      fill: #cec;
+      fill: #efe;
     }
 
     .selection-on .svg-wrapper-left .box.selected {
@@ -185,21 +186,21 @@
     }
 
     .selection-on .svg-wrapper-left .box.selected-connected {
-      stroke: #855;
-      color: #855;
+      stroke: #b99;
+      color: #b99;
     }
 
     .selection-on .svg-wrapper-right .box.selected-connected {
-      stroke: #373;
-      color: #373;
+      stroke: #9b9;
+      color: #9b9;
     }
 
     .selection-on  .svg-wrapper-left .patchline.selected-connected {
-      stroke: #855;
+      stroke: #b99;
     }
 
     .selection-on  .svg-wrapper-right .patchline.selected-connected {
-      stroke: #373;
+      stroke: #9b9;
     }
 
     #viewer-control {
@@ -228,26 +229,38 @@
       left: 0;
       top: 0;
       display: grid;
-      overflow: scroll;
+      overflow-x: hidden;
+      overflow-y: scroll;
       grid-template-columns: 1fr 1fr;
+      max-width: 600px;
     }
 
     #object-viewer dt {
       font-weight: bold;
       padding: 3px;
+      margin: 0;
+      max-width: 100%;
+      word-break: break-all;
+      white-space : pre-wrap;
     }
 
     #object-viewer dd {
-      margin-left: 10px;
+      margin-left: 3px;
       padding: 2px 5px;
-      white-space : pre;
+      word-break: break-all;
+      white-space : pre-wrap;
+      max-width: 100%;
     }
 
     #object-viewer-left {
-      background-color: #faa;
+      background-color: #ffc8c8;
+      color: #600;
+      max-width: 300px;
     }
     #object-viewer-right {
-      background-color: #afa;
+      background-color: #c8ffc8;
+      color: #060;
+      max-width: 300px;
     }
 
   </style>
@@ -267,6 +280,7 @@
     <dl id="object-viewer-left"></dl>
     <dl id="object-viewer-right"></dl>
   </div>
+  <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
   <script src="./maxpat2svg.js"></script>
   <script>
 
@@ -468,7 +482,7 @@
       leftWrapper.classList.add('svg-wrapper-left')
       leftWrapper.setAttribute('width', leftPatcher.width)
       leftWrapper.setAttribute('height', leftPatcher.height + 100)
-      leftWrapper.setAttribute('style', 'opacity: 0.6;')
+      leftWrapper.setAttribute('style', 'opacity: 0.8;')
       leftWrapper.classList.add('svg-wrapper')
       leftWrapper.appendChild(leftPatcher.svg())
       patcherDiff.appendChild(leftWrapper)
@@ -477,7 +491,7 @@
       rightWrapper.classList.add('svg-wrapper-right')
       rightWrapper.setAttribute('width', rightPatcher.width)
       rightWrapper.setAttribute('height', rightPatcher.height + 100)
-      rightWrapper.setAttribute('style', 'opacity: 0.6;')
+      rightWrapper.setAttribute('style', 'opacity: 0.8;')
       rightWrapper.classList.add('svg-wrapper')
       rightWrapper.appendChild(rightPatcher.svg())
 
@@ -526,11 +540,11 @@
         const value = parseInt(evt.target.value)
         const leftWrappers = document.querySelectorAll('.svg-wrapper-left')
         for ( const leftWrapper of leftWrappers ) {
-          leftWrapper.setAttribute( 'style', 'opacity: ' + Math.min(1.0, value * 1.2 / 1000))
+          leftWrapper.setAttribute( 'style', 'opacity: ' + Math.min(1.0, value * 1.7 / 1000))
         }
         const rightWrappers = document.querySelectorAll('.svg-wrapper-right')
         for ( const rightWrapper of rightWrappers ) {
-          rightWrapper.setAttribute('style', 'opacity: ' + Math.min(1.0, (1000 - value) * 1.2 / 1000))
+          rightWrapper.setAttribute('style', 'opacity: ' + Math.min(1.0, (1000 - value) * 1.7 / 1000))
         }
       })
     });
@@ -552,6 +566,14 @@
       })
     }
 
+    function typeOf (value) {
+      // Too cheap for JS values but it might be ok for values coming from JSON I think... :thinking:
+      return Array.isArray(value)    ? 'array'
+           : value instanceof Object ? 'object'
+           :                           'primitive'
+           ;
+    }
+
     function showObjectInfo(left, right) {
       const allKeys = Object.keys(Object.fromEntries([ ...Object.keys(left), ...Object.keys(right)].map(k => [k,1]))).sort()
       console.log(allKeys)
@@ -569,7 +591,13 @@
           const dd = document.createElement('dd')
           if ( boxes[pane][k] ) {
             dt.innerText = k
-            dd.innerText = JSON.stringify(boxes[pane][k], null, 2)
+            const v = boxes[pane][k]
+            if ( Array.isArray(v) && v.length === v.filter(vv => 'primitive' === typeOf(vv) ).length ) {
+              dd.innerText = v.map( vv => `"${vv}"` ).join(' ')
+            }
+            else {
+              dd.innerText = jsyaml.dump(v)
+            }
           }
           lists[pane].appendChild(dt)
           lists[pane].appendChild(dd)
