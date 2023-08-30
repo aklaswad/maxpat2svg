@@ -509,8 +509,6 @@
 
       const leftWrapper = document.createElement('div')
       leftWrapper.classList.add('svg-wrapper-left')
-      leftWrapper.setAttribute('width', leftPatcher.width)
-      leftWrapper.setAttribute('height', leftPatcher.height + 100)
       leftWrapper.setAttribute('style', 'opacity: 0.8;')
       leftWrapper.classList.add('svg-wrapper')
       leftWrapper.appendChild(leftPatcher.svg())
@@ -518,8 +516,6 @@
 
       const rightWrapper = document.createElement('div')
       rightWrapper.classList.add('svg-wrapper-right')
-      rightWrapper.setAttribute('width', rightPatcher.width)
-      rightWrapper.setAttribute('height', rightPatcher.height + 100)
       rightWrapper.setAttribute('style', 'opacity: 0.8;')
       rightWrapper.classList.add('svg-wrapper')
       rightWrapper.appendChild(rightPatcher.svg())
