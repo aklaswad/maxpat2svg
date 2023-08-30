@@ -479,6 +479,27 @@
           to.scrollIntoView()
         }
       }
+
+      document.querySelectorAll('.toggle-patcher-diff').forEach( toggle => {
+        toggle.addEventListener('click', (evt) => {
+          if ( toggle.innerText === 'close' ) {
+            toggle.innerText = 'open'
+            const wrapper = document.getElementById(toggle.dataset.target)
+            wrapper.querySelectorAll('.svg-wrapper').forEach( svg => {
+              svg.setAttribute('style', 'display: none;')
+            })
+            wrapper.setAttribute('style', 'height: 30px;')
+          }
+          else if ( toggle.innerText === 'open' ) {
+            toggle.innerText = 'close'
+            const wrapper = document.getElementById(toggle.dataset.target)
+            wrapper.querySelectorAll('.svg-wrapper').forEach( svg => {
+              svg.setAttribute('style', 'display: block;')
+            })
+            wrapper.setAttribute('style', 'height: ' + (patcherDiff.dataset.height + 100) + 'px;')
+          }
+        })
+      })
     }
 
     function createEmptyBlock (name, id, message) {
@@ -501,10 +522,16 @@
       const patcherDiff = document.createElement('div')
       patcherDiff.classList.add('patcher-diff')
       patcherDiff.setAttribute('id', id)
-      patcherDiff.setAttribute('style', 'height: ' + (leftPatcher.height + 100) + 'px;')
+      patcherDiff.dataset.height = leftPatcher.height
+      patcherDiff.setAttribute('style', 'height: ' + (patcherDiff.dataset.height + 100) + 'px;')
 
       const header = document.createElement('h2')
-      header.textContent = name
+      const toggle = document.createElement('button')
+      toggle.classList.add('toggle-patcher-diff')
+      toggle.dataset.target = id
+      toggle.innerText = 'close'
+      header.appendChild(toggle)
+      header.appendChild(document.createTextNode(name))
       patcherDiff.appendChild(header)
 
       const leftWrapper = document.createElement('div')
