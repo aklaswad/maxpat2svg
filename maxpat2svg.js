@@ -1,6 +1,29 @@
+(function () {
 const PORT_RADIUS = 3
 const PORT_MARGIN = 6
 const LINE_R = 10
+
+const tArray = Symbol('array')
+const tObject = Symbol('object')
+const tPrimitive = Symbol('primitive')
+
+function getTypeOf (value) {
+  // Too cheap for JS values but it might be ok for values coming from JSON I think... :thinking:
+  return Array.isArray(value)    ? tArray
+       : value instanceof Object ? tObject
+       :                           tPrimitive
+       ;
+}
+
+function deepEqual (left, right) {
+  const type = getTypeOf(left)
+  if ( type != getTypeOf(right) ) return false
+  if ( type === tPrimitive ) return left === right
+  if ( type === tArray ) {
+    return left.length === right.length && left.every((e, i) => deepEqual(e, right[i]))
+  }
+  return deepEqual(Object.entries(left).sort(), Object.entries(right).sort())
+}
 
 const BoxDecorator = {
   comment: function (_box, _g, rect) {
@@ -278,6 +301,17 @@ class MaxPat {
     this.height = anotherPatcher.height = newRect[3] - newRect[1] + 40
   }
 
+  isEqualTo(anotherPatcher) {
+    if ( ! anotherPatcher instanceof MaxPat ) return false
+    if ( this.lines.length !== anotherPatcher.lines.length ) return false
+    if ( Object.keys(this.boxes).length !== Object.keys(anotherPatcher.boxes).length ) return false
+    if ( ! deepEqual(this.lines, anotherPatcher.lines) ) return false
+    return deepEqual(
+      Object.fromEntries( Object.entries(this.boxes).map(e => [e[0], e[1].box])),
+      Object.fromEntries( Object.entries(anotherPatcher.boxes).map(e => [e[0], e[1].box]))
+    )
+  }
+
   svg() {
     const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
     svg.setAttribute('width', this.width)
@@ -351,3 +385,6 @@ class MaxPat {
     return svg
   }
 }
+
+window.MaxPat = MaxPat
+})()

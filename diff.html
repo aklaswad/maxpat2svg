@@ -489,14 +489,18 @@
               svg.setAttribute('style', 'display: none;')
             })
             wrapper.setAttribute('style', 'height: 30px;')
+            wrapper.classList.add('closed')
+            wrapper.classList.remove('opened')
           }
-          else if ( toggle.innerText === 'open' ) {
+          else {
             toggle.innerText = 'close'
             const wrapper = document.getElementById(toggle.dataset.target)
             wrapper.querySelectorAll('.svg-wrapper').forEach( svg => {
               svg.setAttribute('style', 'display: block;')
             })
-            wrapper.setAttribute('style', 'height: ' + (patcherDiff.dataset.height + 100) + 'px;')
+            wrapper.setAttribute('style', 'height: ' + (parseInt(wrapper.dataset.height) + 100) + 'px;')
+            wrapper.classList.add('opened')
+            wrapper.classList.remove('closed')
           }
         })
       })
@@ -519,17 +523,18 @@
 
     function createDiffBlock (name, id, leftPatcher, rightPatcher) {
       leftPatcher.gatherViewBoxWith(rightPatcher)
+      const same = leftPatcher.isEqualTo(rightPatcher)
       const patcherDiff = document.createElement('div')
       patcherDiff.classList.add('patcher-diff')
       patcherDiff.setAttribute('id', id)
       patcherDiff.dataset.height = leftPatcher.height
-      patcherDiff.setAttribute('style', 'height: ' + (patcherDiff.dataset.height + 100) + 'px;')
-
+      patcherDiff.setAttribute('style', 'height: ' + ( (same ? 30 : 100 + parseInt(patcherDiff.dataset.height)) ) + 'px;')
+      patcherDiff.classList.add( same ? 'closed' : 'opened' )
       const header = document.createElement('h2')
       const toggle = document.createElement('button')
       toggle.classList.add('toggle-patcher-diff')
       toggle.dataset.target = id
-      toggle.innerText = 'close'
+      toggle.innerText = same ? 'open' : 'close'
       header.appendChild(toggle)
       header.appendChild(document.createTextNode(name))
       patcherDiff.appendChild(header)
@@ -546,8 +551,12 @@
       rightWrapper.setAttribute('style', 'opacity: 0.8;')
       rightWrapper.classList.add('svg-wrapper')
       rightWrapper.appendChild(rightPatcher.svg())
-
       patcherDiff.appendChild(rightWrapper)
+
+      if ( same ) {
+        leftWrapper.setAttribute('style', 'display: none')
+        rightWrapper.setAttribute('style', 'display: none')
+      }
       return patcherDiff
     }
 
@@ -590,11 +599,11 @@
       const slider = document.getElementById('left-right-ratio')
       slider.addEventListener('input', function changeRatio (evt) {
         const value = parseInt(evt.target.value)
-        const leftWrappers = document.querySelectorAll('.svg-wrapper-left')
+        const leftWrappers = document.querySelectorAll('.opened .svg-wrapper-left')
         for ( const leftWrapper of leftWrappers ) {
           leftWrapper.setAttribute( 'style', 'opacity: ' + Math.min(1.0, value * 1.7 / 1000))
         }
-        const rightWrappers = document.querySelectorAll('.svg-wrapper-right')
+        const rightWrappers = document.querySelectorAll('.opened .svg-wrapper-right')
         for ( const rightWrapper of rightWrappers ) {
           rightWrapper.setAttribute('style', 'opacity: ' + Math.min(1.0, (1000 - value) * 1.7 / 1000))
         }
