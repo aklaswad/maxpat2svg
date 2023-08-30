@@ -6,10 +6,11 @@
       white-space: normal;
     }
 
-    body, ul, li, dl, div {
+    body, ul, li, dl, div, table, tr, th, td {
       margin: 0;
       padding: 0;
       font-size: 12px;
+      text-align: left;
     }
 
     ul, ol {
@@ -222,45 +223,70 @@
       bottom: 10px;
     }
 
-    #object-viewer {
+    #object-viewer-wrapper {
       z-index: 1000;
+      max-width: 600px;
       max-height: 100vh;
       position: fixed;
       left: 0;
       top: 0;
-      display: grid;
       overflow-x: hidden;
       overflow-y: scroll;
-      grid-template-columns: 1fr 1fr;
-      max-width: 600px;
+      background: #fff;
     }
 
-    #object-viewer dt {
+    #object-viewer {
+      border-collapse: collapse;
+    }
+
+    #object-viewer th {
       font-weight: bold;
-      padding: 3px;
+      padding: 2px 2px 0px 3px;
       margin: 0;
       max-width: 100%;
       word-break: break-all;
       white-space : pre-wrap;
     }
 
-    #object-viewer dd {
+    #object-viewer td {
       margin-left: 3px;
-      padding: 2px 5px;
+      padding: 0px 2px 2px 8px;
       word-break: break-all;
       white-space : pre-wrap;
       max-width: 100%;
     }
 
-    #object-viewer-left {
-      background-color: #ffc8c8;
-      color: #600;
-      max-width: 300px;
+    #object-viewer li {
+      display: inline-block;
     }
-    #object-viewer-right {
-      background-color: #c8ffc8;
+
+    #object-viewer span {
+      display: inline-block;
+      background: rgba(255,255,255,0.6);
+      margin: 0 4px;
+      min-width: 4px;
+      min-height: 8px;
+      padding: 0 2px;
+      border: 1px solid #aaa;
+    }
+
+    #object-viewer > tr > th:nth-of-type(1), #object-viewer > tr > td:nth-of-type(1) {
+      background-color: #ffe8e8;
+      color: #600;
+      width: 300px;
+    }
+
+    #object-viewer > tr > th:nth-of-type(2), #object-viewer > tr > td:nth-of-type(2) {
+      background-color: #e8ffe8;
       color: #060;
-      max-width: 300px;
+      width: 300px;
+    }
+
+    #object-viewer > tr > th.different:nth-of-type(1), #object-viewer > tr > td.different:nth-of-type(1) {
+      background: #eeb0b0;
+    }
+    #object-viewer > tr > th.different:nth-of-type(2), #object-viewer > tr > td.different:nth-of-type(2) {
+      background: #b0eeb0;
     }
 
   </style>
@@ -276,11 +302,9 @@
     <input id="left-right-ratio" type="range" min="0" max="1000" step="1"><br>
   </div>
 
-  <div id="object-viewer">
-    <dl id="object-viewer-left"></dl>
-    <dl id="object-viewer-right"></dl>
+  <div id="object-viewer-wrapper" style="display: none;">
+    <table id="object-viewer"></table>
   </div>
-  <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
   <script src="./maxpat2svg.js"></script>
   <script>
 
@@ -306,7 +330,6 @@
       const workers = []
       for (const idx in fileList ) {
         const file = fileList[idx]
-        console.log(file)
         if ( ! /\.max(pat|help)/.test(file.filename) ) {
           files[idx]['left'] = '{}'
           files[idx]['right'] = '{}'
@@ -550,6 +573,7 @@
     });
 
     function selectBox(target) {
+      document.getElementById('object-viewer-wrapper').setAttribute('style', 'display: none;')
       const parent = target.parentElement
       document.body.classList.add('selection-on')
       target.classList.add('selected')
@@ -566,41 +590,95 @@
       })
     }
 
-    function typeOf (value) {
+    const tArray = Symbol('array')
+    const tObject = Symbol('object')
+    const tPrimitive = Symbol('primitive')
+
+    function getTypeOf (value) {
       // Too cheap for JS values but it might be ok for values coming from JSON I think... :thinking:
-      return Array.isArray(value)    ? 'array'
-           : value instanceof Object ? 'object'
-           :                           'primitive'
+      return Array.isArray(value)    ? tArray
+           : value instanceof Object ? tObject
+           :                           tPrimitive
            ;
     }
 
-    function showObjectInfo(left, right) {
-      const allKeys = Object.keys(Object.fromEntries([ ...Object.keys(left), ...Object.keys(right)].map(k => [k,1]))).sort()
-      console.log(allKeys)
-      for ( const pane of ['left', 'right'] ) {
-        document.getElementById('object-viewer-' + pane).innerHTML = ''
+    function deepEqual (left, right) {
+      const type = getTypeOf(left)
+      if ( type != getTypeOf(right) ) return false
+      if ( type === tPrimitive ) return left === right
+      if ( type === tArray ) {
+        return left.length === right.length && left.every((e, i) => deepEqual(e, right[i]))
       }
+      return deepEqual(Object.entries(left).sort(), Object.entries(right).sort())
+    }
+
+    function createObjectInfoColumn (value) {
+      const type = getTypeOf(value)
+      if ( type === tPrimitive ) {
+        const span = document.createElement('span')
+        span.textContent = value
+        return span
+      }
+      else if ( type === tArray ) {
+        const list = document.createElement('ul')
+        for ( const listItem of value ) {
+          const li = document.createElement('li')
+          li.appendChild(createObjectInfoColumn(listItem))
+          list.appendChild(li)
+        }
+        return list
+      }
+      const table = document.createElement('table')
+      for (const k of Object.keys(value).sort() ) {
+        const keyRow = document.createElement('tr')
+        table.appendChild(keyRow)
+        const th = document.createElement('th')
+        th.innerText = k
+        keyRow.appendChild(th)
+        const valueRow = document.createElement('tr')
+        table.appendChild(valueRow)
+        const td = document.createElement('td')
+        td.appendChild(createObjectInfoColumn(value[k]))
+        valueRow.appendChild(td)
+      }
+      return table
+    }
+
+    function showObjectInfo(left, right) {
+      document.getElementById('object-viewer-wrapper').setAttribute('style', 'display: block;')
+      const allKeys = Object.keys(Object.fromEntries([ ...Object.keys(left), ...Object.keys(right)].map(k => [k,1]))).sort()
+      const table = document.getElementById('object-viewer')
+      table.innerHTML = ''
       const boxes = { left, right }
       const lists = {
         left: document.getElementById('object-viewer-left'),
         right: document.getElementById('object-viewer-right')
       }
       for ( const k of allKeys ) {
+        const same = deepEqual(boxes.left[k], boxes.right[k])
+        const header = document.createElement('tr')
+        const body = document.createElement('tr')
+        table.appendChild(header)
+        table.appendChild(body)
         for ( const pane of ['left', 'right'] ) {
-          const dt = document.createElement('dt')
-          const dd = document.createElement('dd')
-          if ( boxes[pane][k] ) {
-            dt.innerText = k
+          const th = document.createElement('th')
+          const td = document.createElement('td')
+          if ( !same ) {
+            th.classList.add('different')
+            td.classList.add('different')
+          }
+          if ( boxes[pane].hasOwnProperty(k) ) {
+            th.innerText = k
             const v = boxes[pane][k]
-            if ( Array.isArray(v) && v.length === v.filter(vv => 'primitive' === typeOf(vv) ).length ) {
-              dd.innerText = v.map( vv => `"${vv}"` ).join(' ')
+            if ( k === 'patcher' ) {
+              td.textContent = '(omitted)'
             }
             else {
-              dd.innerText = jsyaml.dump(v)
+              td.appendChild(createObjectInfoColumn(boxes[pane][k]))
             }
           }
-          lists[pane].appendChild(dt)
-          lists[pane].appendChild(dd)
+          header.appendChild(th)
+          body.appendChild(td)
         }
       }
     }
