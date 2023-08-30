@@ -2,12 +2,15 @@
   <style>
     body {
       background: #eee;
+      word-break: break-all;
+      white-space: normal;
     }
 
-    body, ul, li, div {
+    body, ul, li, dl, div, table, tr, th, td {
       margin: 0;
       padding: 0;
       font-size: 12px;
+      text-align: left;
     }
 
     ul, ol {
@@ -24,14 +27,14 @@
       box-sizing: border-box;
       top: 0;
       left: 0;
-      width: 300px;
+      width: 400px;
       padding: 1rem;
       z-index: 100;
       overflow: hidden;
     }
 
     #wrapper {
-      padding-left: 300px;
+      padding-left: 400px;
       padding-top: 15px;
     }
 
@@ -67,11 +70,10 @@
     }
 
     .red-green .svg-wrapper-left {
-      /*mix-blend-mode: exclusion;*/
-      stroke: #841850;
-      color:  #841850;
+      mix-blend-mode: multiply;
+      stroke: #841830;
+      color:  #841830;
       pointer-events: none;
-      background: rgba(0,0,0,0.0);
     }
 
     .red-green .svg-wrapper-left .patchline {
@@ -87,17 +89,17 @@
     }
 
     .svg-wrapper-right {
+      mix-blend-mode: multiply;
       z-index: 1;
       stroke: rgba(100,100,100,1.0);
       color: #666;
-      background: #fff;
       border: 1px solid #8a8;
     }
 
     .red-green .svg-wrapper-right {
       z-index: 1;
-      stroke: #188450;
-      color:  #188450;
+      stroke: #188430;
+      color:  #188430;
       background: rgba(0,0,0,0.0);
     }
 
@@ -146,20 +148,20 @@
     }
 
     .selection-on .svg-wrapper-left g.box, .selection-on .svg-wrapper-left path.patchline {
-      stroke: #ecc;
-      color: #ecc;
+      stroke: #fee;
+      color: #fee;
     }
 
     .selection-on .svg-wrapper-right g.box, .selection-on .svg-wrapper-right path.patchline {
-      stroke: #cec;
-      color: #cec;
+      stroke: #efe;
+      color: #efe;
     }
     .selection-on .svg-wrapper-left .decoration-fill {
-      fill: #ecc;
+      fill: #fee;
     }
 
     .selection-on .svg-wrapper-right .decoration-fill {
-      fill: #cec;
+      fill: #efe;
     }
 
     .selection-on .svg-wrapper-left .box.selected {
@@ -185,21 +187,21 @@
     }
 
     .selection-on .svg-wrapper-left .box.selected-connected {
-      stroke: #855;
-      color: #855;
+      stroke: #b99;
+      color: #b99;
     }
 
     .selection-on .svg-wrapper-right .box.selected-connected {
-      stroke: #373;
-      color: #373;
+      stroke: #9b9;
+      color: #9b9;
     }
 
     .selection-on  .svg-wrapper-left .patchline.selected-connected {
-      stroke: #855;
+      stroke: #b99;
     }
 
     .selection-on  .svg-wrapper-right .patchline.selected-connected {
-      stroke: #373;
+      stroke: #9b9;
     }
 
     #viewer-control {
@@ -220,6 +222,79 @@
       left: 30px;
       bottom: 10px;
     }
+
+    #object-viewer-wrapper {
+      z-index: 1000;
+      max-width: 400px;
+      max-height: 100vh;
+      position: fixed;
+      left: 0;
+      top: 0;
+      overflow-x: hidden;
+      overflow-y: scroll;
+      background: #fff;
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    #object-viewer-wrapper::-webkit-scrollbar{
+      display: none;
+    }
+
+    #object-viewer {
+      border-collapse: collapse;
+    }
+
+    #object-viewer th {
+      font-weight: bold;
+      padding: 2px 2px 0px 3px;
+      margin: 0;
+      max-width: 100%;
+      word-break: break-all;
+      white-space : pre-wrap;
+    }
+
+    #object-viewer td {
+      margin-left: 3px;
+      padding: 0px 2px 2px 8px;
+      word-break: break-all;
+      white-space : pre-wrap;
+      max-width: 100%;
+    }
+
+    #object-viewer li {
+      display: inline-block;
+    }
+
+    #object-viewer span {
+      display: inline-block;
+      background: rgba(255,255,255,0.6);
+      margin: 0 4px;
+      min-width: 4px;
+      min-height: 8px;
+      padding: 0 2px;
+      border: 1px solid #aaa;
+    }
+
+    #object-viewer > tr > th:nth-of-type(1), #object-viewer > tr > td:nth-of-type(1) {
+      background-color: #ffe8e8;
+      color: #600;
+      width: 200px;
+    }
+
+    #object-viewer > tr > th:nth-of-type(2), #object-viewer > tr > td:nth-of-type(2) {
+      background-color: #e8ffe8;
+      color: #060;
+      width: 200px;
+    }
+
+    #object-viewer > tr > th.different:nth-of-type(1), #object-viewer > tr > td.different:nth-of-type(1) {
+      background: #eeb0b0;
+    }
+    #object-viewer > tr > th.different:nth-of-type(2), #object-viewer > tr > td.different:nth-of-type(2) {
+      background: #b0eeb0;
+    }
+
   </style>
   <div id="menu">
     <ul id="files">
@@ -233,6 +308,9 @@
     <input id="left-right-ratio" type="range" min="0" max="1000" step="1"><br>
   </div>
 
+  <div id="object-viewer-wrapper" style="display: none;">
+    <table id="object-viewer"></table>
+  </div>
   <script src="./maxpat2svg.js"></script>
   <script>
 
@@ -258,7 +336,6 @@
       const workers = []
       for (const idx in fileList ) {
         const file = fileList[idx]
-        console.log(file)
         if ( ! /\.max(pat|help)/.test(file.filename) ) {
           files[idx]['left'] = '{}'
           files[idx]['right'] = '{}'
@@ -387,14 +464,20 @@
           wrapper.appendChild(createEmptyBlock(name, id, 'Not supported'))
         }
       }
+      setTimeout(postRender, 100)
+    }
+
+    function postRender () {
+      document.querySelectorAll('svg.patcher-view').forEach( svg => {
+        svg.addEventListener('click', handleSVGClick)
+      })
+
       if ( document.location.hash ) {
-        setTimeout( function () {
-          const id = document.location.hash.replace(/^#/, '')
-          const to = document.getElementById(id)
-          if ( to ) {
-            to.scrollIntoView()
-          }
-        }, 400)
+        const id = document.location.hash.replace(/^#/, '')
+        const to = document.getElementById(id)
+        if ( to ) {
+          to.scrollIntoView()
+        }
       }
     }
 
@@ -428,7 +511,7 @@
       leftWrapper.classList.add('svg-wrapper-left')
       leftWrapper.setAttribute('width', leftPatcher.width)
       leftWrapper.setAttribute('height', leftPatcher.height + 100)
-      leftWrapper.setAttribute('style', 'opacity: 0.6;')
+      leftWrapper.setAttribute('style', 'opacity: 0.8;')
       leftWrapper.classList.add('svg-wrapper')
       leftWrapper.appendChild(leftPatcher.svg())
       patcherDiff.appendChild(leftWrapper)
@@ -437,7 +520,7 @@
       rightWrapper.classList.add('svg-wrapper-right')
       rightWrapper.setAttribute('width', rightPatcher.width)
       rightWrapper.setAttribute('height', rightPatcher.height + 100)
-      rightWrapper.setAttribute('style', 'opacity: 0.6;')
+      rightWrapper.setAttribute('style', 'opacity: 0.8;')
       rightWrapper.classList.add('svg-wrapper')
       rightWrapper.appendChild(rightPatcher.svg())
 
@@ -486,16 +569,17 @@
         const value = parseInt(evt.target.value)
         const leftWrappers = document.querySelectorAll('.svg-wrapper-left')
         for ( const leftWrapper of leftWrappers ) {
-          leftWrapper.setAttribute( 'style', 'opacity: ' + Math.min(1.0, value * 1.2 / 1000))
+          leftWrapper.setAttribute( 'style', 'opacity: ' + Math.min(1.0, value * 1.7 / 1000))
         }
         const rightWrappers = document.querySelectorAll('.svg-wrapper-right')
         for ( const rightWrapper of rightWrappers ) {
-          rightWrapper.setAttribute('style', 'opacity: ' + Math.min(1.0, (1000 - value) * 1.2 / 1000))
+          rightWrapper.setAttribute('style', 'opacity: ' + Math.min(1.0, (1000 - value) * 1.7 / 1000))
         }
       })
     });
 
     function selectBox(target) {
+      document.getElementById('object-viewer-wrapper').setAttribute('style', 'display: none;')
       const parent = target.parentElement
       document.body.classList.add('selection-on')
       target.classList.add('selected')
@@ -512,7 +596,100 @@
       })
     }
 
-    document.addEventListener('click', function handleClick (evt) {
+    const tArray = Symbol('array')
+    const tObject = Symbol('object')
+    const tPrimitive = Symbol('primitive')
+
+    function getTypeOf (value) {
+      // Too cheap for JS values but it might be ok for values coming from JSON I think... :thinking:
+      return Array.isArray(value)    ? tArray
+           : value instanceof Object ? tObject
+           :                           tPrimitive
+           ;
+    }
+
+    function deepEqual (left, right) {
+      const type = getTypeOf(left)
+      if ( type != getTypeOf(right) ) return false
+      if ( type === tPrimitive ) return left === right
+      if ( type === tArray ) {
+        return left.length === right.length && left.every((e, i) => deepEqual(e, right[i]))
+      }
+      return deepEqual(Object.entries(left).sort(), Object.entries(right).sort())
+    }
+
+    function createObjectInfoColumn (value) {
+      const type = getTypeOf(value)
+      if ( type === tPrimitive ) {
+        const span = document.createElement('span')
+        span.textContent = value
+        return span
+      }
+      else if ( type === tArray ) {
+        const list = document.createElement('ul')
+        for ( const listItem of value ) {
+          const li = document.createElement('li')
+          li.appendChild(createObjectInfoColumn(listItem))
+          list.appendChild(li)
+        }
+        return list
+      }
+      const table = document.createElement('table')
+      for (const k of Object.keys(value).sort() ) {
+        const keyRow = document.createElement('tr')
+        table.appendChild(keyRow)
+        const th = document.createElement('th')
+        th.innerText = k
+        keyRow.appendChild(th)
+        const valueRow = document.createElement('tr')
+        table.appendChild(valueRow)
+        const td = document.createElement('td')
+        td.appendChild(createObjectInfoColumn(value[k]))
+        valueRow.appendChild(td)
+      }
+      return table
+    }
+
+    function showObjectInfo(left, right) {
+      document.getElementById('object-viewer-wrapper').setAttribute('style', 'display: block;')
+      const allKeys = Object.keys(Object.fromEntries([ ...Object.keys(left), ...Object.keys(right)].map(k => [k,1]))).sort()
+      const table = document.getElementById('object-viewer')
+      table.innerHTML = ''
+      const boxes = { left, right }
+      const lists = {
+        left: document.getElementById('object-viewer-left'),
+        right: document.getElementById('object-viewer-right')
+      }
+      for ( const k of allKeys ) {
+        const same = deepEqual(boxes.left[k], boxes.right[k])
+        const header = document.createElement('tr')
+        const body = document.createElement('tr')
+        table.appendChild(header)
+        table.appendChild(body)
+        for ( const pane of ['left', 'right'] ) {
+          const th = document.createElement('th')
+          const td = document.createElement('td')
+          if ( !same ) {
+            th.classList.add('different')
+            td.classList.add('different')
+          }
+          if ( boxes[pane].hasOwnProperty(k) ) {
+            th.innerText = k
+            const v = boxes[pane][k]
+            if ( k === 'patcher' ) {
+              td.textContent = '(omitted)'
+            }
+            else {
+              td.appendChild(createObjectInfoColumn(boxes[pane][k]))
+            }
+          }
+          header.appendChild(th)
+          body.appendChild(td)
+        }
+      }
+    }
+
+    function handleSVGClick (evt) {
       const possibles = document.elementsFromPoint(evt.clientX, evt.clientY)
       if ( possibles.filter( e => e.matches('#viewer-control')).length ) return
       document.body.classList.remove('selection-on')
@@ -524,6 +701,11 @@
       const right = rightCandidates.length ? rightCandidates[0].parentElement : null
       if ( left ) selectBox(left)
       if ( right ) selectBox(right)
-    })
+
+      showObjectInfo(
+        JSON.parse(left ? left.dataset.box : '{}'),
+        JSON.parse(right ? right.dataset.box : '{}')
+      )
+    }
   </script>
 </html>
