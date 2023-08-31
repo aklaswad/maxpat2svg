@@ -276,9 +276,14 @@ class MaxPat {
       const dst = line.patchline.destination
       const lineSignature = [src.join('_'), dst.join('_')].join('__')
       const srcObj = this.boxes[src[0]]
-      srcObj.outlets[parseInt(src[1])].push( lineSignature )
       const dstObj = this.boxes[dst[0]]
-      dstObj.inlets[parseInt(dst[1])].push( lineSignature )
+      if ( srcObj && dstObj ) {
+        srcObj.outlets[parseInt(src[1])].push( lineSignature )
+        dstObj.inlets[parseInt(dst[1])].push( lineSignature )
+      }
+      else {
+        console.warn('Found patchline connecting to non existing box.', line)
+      }
     }
   }
 
@@ -342,7 +347,10 @@ class MaxPat {
     for ( const line of this.lines ) {
       const sourceBox = this.boxes[line.patchline.source[0]];
       const destBox = this.boxes[line.patchline.destination[0]];
-
+      if ( !sourceBox || !destBox ) {
+        console.warn('Found patchline connecting to non existing box.', line)
+        continue
+      }
       const start = sourceBox.outlet(line.patchline.source[1])
       const end = destBox.inlet(line.patchline.destination[1])
 
