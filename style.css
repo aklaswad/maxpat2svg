@@ -1,0 +1,317 @@
+body {
+    background: #eee;
+    word-break: break-all;
+    white-space: normal;
+}
+
+body,
+ul,
+li,
+dl,
+div,
+table,
+tr,
+th,
+td {
+    margin: 0;
+    padding: 0;
+    font-size: 12px;
+    text-align: left;
+}
+
+ul,
+ol {
+    list-style: none;
+}
+
+a,
+a:hover,
+a:active {
+    color: #000;
+    font-weight: bold;
+}
+
+#menu {
+    position: fixed;
+    box-sizing: border-box;
+    top: 0;
+    left: 0;
+    width: 400px;
+    padding: 1rem;
+    z-index: 100;
+    overflow: hidden;
+}
+
+#wrapper {
+    padding-left: 400px;
+    padding-top: 15px;
+}
+
+.patcher-diff {
+    position: relative;
+    top: 0;
+    left: 0;
+    display: block;
+}
+
+.patcher-diff h2 {
+    position: sticky;
+    top: 0;
+    left: 0;
+    padding: 3px;
+    color: #333;
+    background: rgba(128, 128, 128, 0.2);
+}
+
+.svg-wrapper {
+    position: absolute;
+    top: 50px;
+    left: 0;
+    overflow: visible;
+}
+
+.svg-wrapper-left {
+    z-index: 2;
+    stroke: rgba(100, 100, 100, 1.0);
+    color: #666;
+    background: #fff;
+    border: 1px solid #a88;
+}
+
+.red-green .svg-wrapper-left {
+    mix-blend-mode: multiply;
+    stroke: #841830;
+    color: #841830;
+    pointer-events: none;
+}
+
+.red-green .svg-wrapper-left .patchline {
+    stroke: rgba(128, 54, 80, 1.0);
+}
+
+.red-green .svg-wrapper-left .decoration-fill {
+    fill: rgba(128, 54, 80, 1.0);
+}
+
+.red-green .svg-wrapper-left g {
+    pointer-events: auto;
+}
+
+.svg-wrapper-right {
+    mix-blend-mode: multiply;
+    z-index: 1;
+    stroke: rgba(100, 100, 100, 1.0);
+    color: #666;
+    border: 1px solid #8a8;
+}
+
+.red-green .svg-wrapper-right {
+    z-index: 1;
+    stroke: #188430;
+    color: #188430;
+    background: rgba(0, 0, 0, 0.0);
+}
+
+.red-green .svg-wrapper-right .patchline {
+    stroke: rgba(54, 128, 80, 1.0);
+}
+
+.red-green .svg-wrapper-right .decoration-fill {
+    fill: rgba(54, 128, 80, 1.0);
+}
+
+g.box:hover {
+    stroke: #000;
+    color: #000;
+}
+
+g.box:hover .box-rect {
+    fill: #cde;
+}
+
+g.box foreignObject,
+g.box html,
+g.box div {
+    overflow: visible;
+}
+
+g.box html,
+g.box div {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+}
+
+g.box .alt-text {
+    font-style: italic;
+    text-decoration: dotted;
+}
+
+g.box .alt-text::before {
+    content: '('
+}
+
+g.box .alt-text::after {
+    content: ')'
+}
+
+.inlet.connected,
+.outlet.connected {
+    stroke-width: 2;
+}
+
+.selection-on .svg-wrapper-left g.box,
+.selection-on .svg-wrapper-left path.patchline {
+    stroke: #fee;
+    color: #fee;
+}
+
+.selection-on .svg-wrapper-right g.box,
+.selection-on .svg-wrapper-right path.patchline {
+    stroke: #efe;
+    color: #efe;
+}
+
+.selection-on .svg-wrapper-left .decoration-fill {
+    fill: #fee;
+}
+
+.selection-on .svg-wrapper-right .decoration-fill {
+    fill: #efe;
+}
+
+.selection-on .svg-wrapper-left .box.selected {
+    stroke: #800;
+    color: #800;
+    stroke-width: 2;
+    /*font-weight: bold;*/
+}
+
+.selection-on .svg-wrapper-left .box.selected div {
+    background: rgba(255, 192, 192, 0.3);
+}
+
+.selection-on .svg-wrapper-right .box.selected {
+    stroke: #080;
+    color: #080;
+    stroke-width: 2;
+    /*font-weight: bold;*/
+}
+
+.selection-on .svg-wrapper-right .box.selected div {
+    background: rgba(192, 255, 192, 0.3);
+}
+
+.selection-on .svg-wrapper-left .box.selected-connected {
+    stroke: #b99;
+    color: #b99;
+}
+
+.selection-on .svg-wrapper-right .box.selected-connected {
+    stroke: #9b9;
+    color: #9b9;
+}
+
+.selection-on .svg-wrapper-left .patchline.selected-connected {
+    stroke: #b99;
+}
+
+.selection-on .svg-wrapper-right .patchline.selected-connected {
+    stroke: #9b9;
+}
+
+#viewer-control {
+    position: fixed;
+    width: 300px;
+    padding: 10px;
+    border: 1px solid #999;
+    border-radius: 5px;
+    left: calc(50vw - 150px);
+    background: rgba(168, 170, 172, 0.8);
+    bottom: 50px;
+    z-index: 100;
+}
+
+#left-right-ratio {
+    position: absolute;
+    width: 240px;
+    left: 30px;
+    bottom: 10px;
+}
+
+#object-viewer-wrapper {
+    z-index: 1000;
+    max-width: 400px;
+    max-height: 100vh;
+    position: fixed;
+    left: 0;
+    top: 0;
+    overflow-x: hidden;
+    overflow-y: scroll;
+    background: #fff;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+#object-viewer-wrapper::-webkit-scrollbar {
+    display: none;
+}
+
+#object-viewer {
+    border-collapse: collapse;
+}
+
+#object-viewer th {
+    font-weight: bold;
+    padding: 2px 2px 0px 3px;
+    margin: 0;
+    max-width: 100%;
+    word-break: break-all;
+    white-space: pre-wrap;
+}
+
+#object-viewer td {
+    margin-left: 3px;
+    padding: 0px 2px 2px 8px;
+    word-break: break-all;
+    white-space: pre-wrap;
+    max-width: 100%;
+}
+
+#object-viewer li {
+    display: inline-block;
+}
+
+#object-viewer span {
+    display: inline-block;
+    background: rgba(255, 255, 255, 0.6);
+    margin: 0 4px;
+    min-width: 4px;
+    min-height: 8px;
+    padding: 0 2px;
+    border: 1px solid #aaa;
+}
+
+#object-viewer>tr>th:nth-of-type(1),
+#object-viewer>tr>td:nth-of-type(1) {
+    background-color: #ffe8e8;
+    color: #600;
+    width: 200px;
+}
+
+#object-viewer>tr>th:nth-of-type(2),
+#object-viewer>tr>td:nth-of-type(2) {
+    background-color: #e8ffe8;
+    color: #060;
+    width: 200px;
+}
+
+#object-viewer>tr>th.different:nth-of-type(1),
+#object-viewer>tr>td.different:nth-of-type(1) {
+    background: #eeb0b0;
+}
+
+#object-viewer>tr>th.different:nth-of-type(2),
+#object-viewer>tr>td.different:nth-of-type(2) {
+    background: #b0eeb0;
+}
