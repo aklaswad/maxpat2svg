@@ -1,0 +1,12 @@
+{
+  "name": "maxpat2svg",
+  "private": true,
+  "version": "0.0.1",
+  "type": "module",
+  "scripts": {
+    "build": "tsc"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.2"
+  }
+}

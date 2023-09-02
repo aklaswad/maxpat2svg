@@ -1,13 +1,18 @@
-(function () {
-const PORT_RADIUS = 3
-const PORT_MARGIN = 6
-const LINE_R = 10
+((window:any) => {
+const PORT_RADIUS: number = 3
+const PORT_MARGIN: number = 6
+const LINE_R: number = 10
 
-const tArray = Symbol('array')
+const tArray: symbol = Symbol('array')
 const tObject = Symbol('object')
 const tPrimitive = Symbol('primitive')
 
-function getTypeOf (value) {
+/**
+ * Get structure type of node
+ * @param value
+ * @returns tArray | tObject | tPrimitive
+ */
+function getTypeOf (value: any)  {
   // Too cheap for JS values but it might be ok for values coming from JSON I think... :thinking:
   return Array.isArray(value)    ? tArray
        : value instanceof Object ? tObject
@@ -15,18 +20,22 @@ function getTypeOf (value) {
        ;
 }
 
-function deepEqual (left, right) {
+function deepEqual (left: any, right: any) {
   const type = getTypeOf(left)
   if ( type != getTypeOf(right) ) return false
   if ( type === tPrimitive ) return left === right
   if ( type === tArray ) {
-    return left.length === right.length && left.every((e, i) => deepEqual(e, right[i]))
+    return left.length === right.length && left.every((e: any, i: number) => deepEqual(e, right[i]))
   }
   return deepEqual(Object.entries(left).sort(), Object.entries(right).sort())
 }
 
-const BoxDecorator = {
-  comment: function (_box, _g, rect) {
+type BoxDefinition = { x: number, y: number, width: number, height: number}
+type DecoratorResponse = { rect?: BoxDefinition, text?: string }
+type Decorator = (_box: Box, _g: Element, rect: Element ) => DecoratorResponse | void
+
+const BoxDecorator: {[name: string]: Decorator  } = {
+  comment: function (_box, _g, rect ) {
     rect.setAttribute("stroke-dasharray", "2,2")
   },
   message: function (_box, _g, rect) {
@@ -35,18 +44,19 @@ const BoxDecorator = {
   },
   newobj: function (box, g, _rect) {
     const lineTop = document.createElementNS("http://www.w3.org/2000/svg", "line")
-    lineTop.setAttribute("x1", box.x)
-    lineTop.setAttribute("y1", box.y + 3)
-    lineTop.setAttribute("x2", box.x + box.width)
-    lineTop.setAttribute("y2", box.y + 3)
+    lineTop.setAttribute("x1", box.x.toString())
+    lineTop.setAttribute("y1", (box.y + 3).toString())
+    lineTop.setAttribute("x2", (box.x + box.width).toString())
+    lineTop.setAttribute("y2", (box.y + 3).toString())
     g.appendChild(lineTop)
     const lineBottom = document.createElementNS("http://www.w3.org/2000/svg", "line")
-    lineBottom.setAttribute("x1", box.x)
-    lineBottom.setAttribute("y1", box.y + box.height - 3)
-    lineBottom.setAttribute("x2", box.x + box.width)
-    lineBottom.setAttribute("y2", box.y + box.height - 3)
+    lineBottom.setAttribute("x1", (box.x).toString())
+    lineBottom.setAttribute("y1", (box.y + box.height - 3).toString())
+    lineBottom.setAttribute("x2", (box.x + box.width).toString())
+    lineBottom.setAttribute("y2", (box.y + box.height - 3).toString())
     g.appendChild(lineBottom)
   },
+
   inlet: function (box, g, _rect) {
     const decoration = document.createElementNS("http://www.w3.org/2000/svg", "path")
     decoration.classList.add('decoration-fill')
@@ -75,7 +85,7 @@ const BoxDecorator = {
     g.appendChild(decoration)
     return {rect: {x: box.x + box.height / 2, y: box.y, width: box.width - (box.height / 2), height: box.height }, text: '0.0'}
   },
-  'number~': function (box, g, _rect) {
+  'number~': function (_box, _g, _rect) {
     // TODO: svg design
     return {text: '~ 0.0'}
   },
@@ -126,7 +136,19 @@ const BoxDecorator = {
 }
 
 class Box {
-  constructor (data) {
+  box: any  // placeholder for original json data
+  id: string
+  class: string // maxclass
+  x: number
+  y: number
+  width: number
+  height: number
+  numInlets: number
+  numOutlets: number
+  inlets: string[][]
+  outlets: string[][]
+
+  constructor (data: any) {
     this.box = data.box
     this.id = this.box.id
     this.class = this.box.maxclass.replace(/~/, '-tilde').replace(/\W/g, '-')
@@ -141,28 +163,28 @@ class Box {
     this.outlets = new Array(this.numOutlets).fill(0).map( () => [] )
   }
 
-  inlet (nth) {
+  inlet (nth: number) {
     return {
       x: this.x + PORT_MARGIN + PORT_RADIUS + nth * (this.width - PORT_RADIUS * 2 - PORT_MARGIN * 2 - 1) / Math.max(1, this.numInlets - 1),
       y: this.y
     }
   }
 
-  outlet (nth) {
+  outlet (nth: number) {
     return {
       x: this.x + PORT_MARGIN + PORT_RADIUS + nth * (this.width - PORT_RADIUS * 2 - PORT_MARGIN * 2 - 1) / Math.max(1, this.numOutlets - 1),
       y: this.y + this.height
     }
   }
 
-  svg (patcher) {
+  svg (patcher: any) {
     const g = document.createElementNS("http://www.w3.org/2000/svg", "g")
     const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect")
     g.appendChild(rect);
-    rect.setAttribute("x", this.x)
-    rect.setAttribute("y", this.y)
-    rect.setAttribute("width", this.width)
-    rect.setAttribute("height", this.height)
+    rect.setAttribute("x", this.x.toString())
+    rect.setAttribute("y", this.y.toString())
+    rect.setAttribute("width", this.width.toString())
+    rect.setAttribute("height", this.height.toString())
     rect.classList.add(this.class, 'box-rect')
     g.classList.add('box')
     // TODO: move to CSS
@@ -172,10 +194,10 @@ class Box {
 
     const textElem = document.createElementNS("http://www.w3.org/2000/svg", "foreignObject")
     const innerRect = decorated.rect || this
-    textElem.setAttribute("x", innerRect.x)
-    textElem.setAttribute("y", innerRect.y)
-    textElem.setAttribute("width", innerRect.width)
-    textElem.setAttribute("height", innerRect.height)
+    textElem.setAttribute("x", innerRect.x.toString())
+    textElem.setAttribute("y", innerRect.y.toString())
+    textElem.setAttribute("width", innerRect.width.toString())
+    textElem.setAttribute("height", innerRect.height.toString())
     const html = document.createElementNS("http://www.w3.org/1999/xhtml", 'html')
     const div = document.createElement('div')
     if (
@@ -238,22 +260,48 @@ class Box {
   }
 }
 
+type NamedMaxPat = { name: string, patcher: MaxPat }
+
 class MaxPat {
-  constructor (patcher) {
+  boxes: { [id: string]: Box }
+  lines: any[]
+  children: { name: string, patcher: MaxPat }[]
+  x: number
+  y: number
+  width: number
+  height: number
+  patcher: any // Place to keep original JSON content
+
+  empty () {
     this.boxes = {}
     this.children = []
-    if ( !patcher.patcher ) {
-      this.empty = true
-      this.rect = [0,0,100,100]
-      this.width = 140
-      this.height = 140
-      this.patcher = {}
-      this.lines = []
-      return
-    }
+    this.x = 0
+    this.y = 0
+    this.width = 140
+    this.height = 140
+    this.patcher = {}
+    this.lines = []
+    return this
+  }
+
+  constructor (patcher: any) {
+    this.boxes = {}
+    this.children = []
     this.patcher = patcher.patcher
+    this.x = 0
+    this.y = 0
+    this.width = 0
+    this.height = 0
+    this.lines = []
+
+    if ( !patcher.patcher ) {
+      return this.empty()
+    }
     const boxList = patcher.patcher.boxes
-    let minX = 1000000, minY = 1000000, maxX = -1000000, maxY = -1000000;
+    if ( boxList.length === 0 ) {
+      return this.empty()
+    }
+    let minX = Number.POSITIVE_INFINITY, minY = Number.POSITIVE_INFINITY, maxX = Number.NEGATIVE_INFINITY, maxY = Number.NEGATIVE_INFINITY;
     for ( const boxData of boxList ) {
       const box = new Box(boxData)
       if ( box.x < minX ) minX = box.x
@@ -262,12 +310,12 @@ class MaxPat {
       if ( box.y + box.height > maxY ) maxY = box.y + box.height
       if ( boxData.box?.patcher ) {
         const child = new MaxPat(boxData.box)
+        // cspell:ignore atcher
         const childName = boxData.box.text.replace(/^p(atcher)?\s+/i, '')
         this.children.push({ name: childName || boxData.box.id, patcher: child })
       }
       this.boxes[box.id] = box
     }
-    this.rect = [ minX - 20, minY - 20, maxX + 20, maxY + 20 ]
     this.width = maxX - minX + 40
     this.height = maxY - minY + 40
     this.lines = patcher.patcher.lines
@@ -287,27 +335,21 @@ class MaxPat {
     }
   }
 
-  subPatchers (parentName = '') {
+  subPatchers (parentName: string = ''): NamedMaxPat[] {
     return [
       ...this.children.map( child => ({ name: parentName + '/' + child.name, patcher: child.patcher }) ),
-      ...this.children.reduce( (acc, cur) => [ ...acc, ...cur.patcher.subPatchers(parentName + '/' + cur.name)], [])
+      ...this.children.reduce( (acc: NamedMaxPat[], cur: NamedMaxPat ) => [ ...acc, ...cur.patcher.subPatchers(parentName + '/' + cur.name)], [])
     ]
   }
 
-  gatherViewBoxWith(anotherPatcher) {
-    const newRect = [
-      Math.min(this.rect[0], anotherPatcher.rect[0]),
-      Math.min(this.rect[1], anotherPatcher.rect[1]),
-      Math.max(this.rect[2], anotherPatcher.rect[2]),
-      Math.max(this.rect[3], anotherPatcher.rect[3])
-    ]
-    this.rect = anotherPatcher.rect = newRect
-    this.width = anotherPatcher.width = newRect[2] - newRect[0] + 40
-    this.height = anotherPatcher.height = newRect[3] - newRect[1] + 40
+  gatherViewBoxWith(anotherPatcher: MaxPat) {
+    this.x      = anotherPatcher.x      =   Math.min(this.x, anotherPatcher.x),
+    this.y      = anotherPatcher.y      =   Math.min(this.y, anotherPatcher.y),
+    this.width  = anotherPatcher.width  =   Math.max(this.width, anotherPatcher.width),
+    this.height = anotherPatcher.height =   Math.max(this.height, anotherPatcher.height)
   }
 
-  isEqualTo(anotherPatcher) {
-    if ( ! anotherPatcher instanceof MaxPat ) return false
+  isEqualTo(anotherPatcher: MaxPat) {
     if ( this.lines.length !== anotherPatcher.lines.length ) return false
     if ( Object.keys(this.boxes).length !== Object.keys(anotherPatcher.boxes).length ) return false
     if ( ! deepEqual(this.lines, anotherPatcher.lines) ) return false
@@ -319,12 +361,12 @@ class MaxPat {
 
   svg() {
     const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-    svg.setAttribute('width', this.width)
-    svg.setAttribute('height', this.height)
-    svg.setAttribute('viewBox', [this.rect[0], this.rect[1], this.width, this.height].join(' '))
+    svg.setAttribute('width', this.width.toString())
+    svg.setAttribute('height', this.height.toString())
+    svg.setAttribute('viewBox', [this.x, this.y, this.width, this.height].join(' '))
     svg.classList.add('patcher-view')
     const uuid = crypto.randomUUID()
-    svg.setAttribute('data-' + uuid, true)
+    svg.setAttribute('data-' + uuid, 'true')
     const style = document.createElement('style')
     // XXX: not sure the relation between svg logical size and foreignObject's pixel size...
     style.innerHTML = `
@@ -364,7 +406,7 @@ class MaxPat {
       let d = `M ${start.x} ${start.y}`;
       let prevX = start.x
       let prevY = start.y
-      let points = []
+      let points: number[] = []
       if (line.patchline.midpoints && line.patchline.midpoints.length) {
         points = [ ...line.patchline.midpoints, end.x, end.y ]
       }
@@ -395,4 +437,4 @@ class MaxPat {
 }
 
 window.MaxPat = MaxPat
-})()
+})(window)
