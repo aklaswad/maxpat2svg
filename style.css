@@ -184,7 +184,7 @@ g.box .alt-text::after {
     stroke: #800;
     color: #800;
     stroke-width: 2;
-    /*font-weight: bold;*/
+    /*font-weight: bold;  Do not use bold in box. Won't change line break pos */
 }
 
 .selection-on .svg-wrapper-left .box.selected div {
@@ -195,7 +195,7 @@ g.box .alt-text::after {
     stroke: #080;
     color: #080;
     stroke-width: 2;
-    /*font-weight: bold;*/
+    /*font-weight: bold;  Do not use bold in box. Won't change line break pos */
 }
 
 .selection-on .svg-wrapper-right .box.selected div {
