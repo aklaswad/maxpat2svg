@@ -1,30 +1,34 @@
 ((window:any) => {
-const PORT_RADIUS: number = 3
-const PORT_MARGIN: number = 6
-const LINE_R: number = 10
 
-const tArray: symbol = Symbol('array')
-const tObject = Symbol('object')
-const tPrimitive = Symbol('primitive')
+  const SVG_NS = 'http://www.w3.org/2000/svg'
 
+  const PORT_RADIUS: number = 3
+  const PORT_MARGIN: number = 6
+  const LINE_R: number = 10
+
+type NodeType = 'array' | 'object' | 'primitive'
 /**
  * Get structure type of node
  * @param value
- * @returns tArray | tObject | tPrimitive
+ * @returns NodeType
  */
-function getTypeOf (value: any)  {
+function getTypeOf (value: any): NodeType  {
   // Too cheap for JS values but it might be ok for values coming from JSON I think... :thinking:
-  return Array.isArray(value)    ? tArray
-       : value instanceof Object ? tObject
-       :                           tPrimitive
+  return Array.isArray(value)    ? 'array'
+       : value instanceof Object ? 'object'
+       :                           'primitive'
        ;
 }
 
+/**
+ * Lazy comparison for structured object
+ * TODO: Replace this with strict version of MaxPat class specific
+ */
 function deepEqual (left: any, right: any) {
   const type = getTypeOf(left)
   if ( type != getTypeOf(right) ) return false
-  if ( type === tPrimitive ) return left === right
-  if ( type === tArray ) {
+  if ( type === 'primitive' ) return left === right
+  if ( type === 'array' ) {
     return left.length === right.length && left.every((e: any, i: number) => deepEqual(e, right[i]))
   }
   return deepEqual(Object.entries(left).sort(), Object.entries(right).sort())
@@ -34,6 +38,9 @@ type BoxDefinition = { x: number, y: number, width: number, height: number}
 type DecoratorResponse = { rect?: BoxDefinition, text?: string }
 type Decorator = (_box: Box, _g: Element, rect: Element ) => DecoratorResponse | void
 
+/**
+ * Collection of box decoration for each maxclass
+ */
 const BoxDecorator: {[name: string]: Decorator  } = {
   comment: function (_box, _g, rect ) {
     rect.setAttribute("stroke-dasharray", "2,2")
@@ -43,13 +50,13 @@ const BoxDecorator: {[name: string]: Decorator  } = {
     rect.setAttribute("ry", "5")
   },
   newobj: function (box, g, _rect) {
-    const lineTop = document.createElementNS("http://www.w3.org/2000/svg", "line")
+    const lineTop = document.createElementNS(SVG_NS, "line")
     lineTop.setAttribute("x1", box.x.toString())
     lineTop.setAttribute("y1", (box.y + 3).toString())
     lineTop.setAttribute("x2", (box.x + box.width).toString())
     lineTop.setAttribute("y2", (box.y + 3).toString())
     g.appendChild(lineTop)
-    const lineBottom = document.createElementNS("http://www.w3.org/2000/svg", "line")
+    const lineBottom = document.createElementNS(SVG_NS, "line")
     lineBottom.setAttribute("x1", (box.x).toString())
     lineBottom.setAttribute("y1", (box.y + box.height - 3).toString())
     lineBottom.setAttribute("x2", (box.x + box.width).toString())
@@ -58,19 +65,19 @@ const BoxDecorator: {[name: string]: Decorator  } = {
   },
 
   inlet: function (box, g, _rect) {
-    const decoration = document.createElementNS("http://www.w3.org/2000/svg", "path")
+    const decoration = document.createElementNS(SVG_NS, "path")
     decoration.classList.add('decoration-fill')
     decoration.setAttribute('d', `M ${box.x + box.width * 0.2} ${box.y + box.height / 2} L ${box.x + box.width * 0.8} ${box.y + box.height / 2} L ${box.x + box.width / 2} ${box.y + box.height * 0.9} Z`)
     g.appendChild(decoration)
   },
   outlet: function (box, g, _rect) {
-    const decoration = document.createElementNS("http://www.w3.org/2000/svg", "path")
+    const decoration = document.createElementNS(SVG_NS, "path")
     decoration.classList.add('decoration-fill')
     decoration.setAttribute('d', `M ${box.x + box.width * 0.2} ${box.y + box.height * 0.1} L ${box.x + box.width * 0.8} ${box.y + box.height * 0.1} L ${box.x + box.width / 2} ${box.y + box.height / 2} Z`)
     g.appendChild(decoration)
   },
   number: function (box, g, _rect) {
-    const decoration = document.createElementNS("http://www.w3.org/2000/svg", "path")
+    const decoration = document.createElementNS(SVG_NS, "path")
     decoration.classList.add('decoration-fill')
     const margin = box.height * 0.2
     decoration.setAttribute('d', `M ${box.x + margin} ${box.y + margin} L ${box.x + box.height / 2} ${box.y + box.height / 2} L ${box.x + margin} ${box.y + box.height - margin} Z`)
@@ -78,7 +85,7 @@ const BoxDecorator: {[name: string]: Decorator  } = {
     return {rect: {x: box.x + box.height / 2, y: box.y, width: box.width - (box.height / 2), height: box.height }, text: '0'}
   },
   flonum: function (box, g, _rect) {
-    const decoration = document.createElementNS("http://www.w3.org/2000/svg", "path")
+    const decoration = document.createElementNS(SVG_NS, "path")
     decoration.classList.add('decoration-fill')
     const margin = box.height * 0.2
     decoration.setAttribute('d', `M ${box.x + margin} ${box.y + margin} L ${box.x + box.height / 2} ${box.y + box.height / 2} L ${box.x + margin} ${box.y + box.height - margin} Z`)
@@ -90,7 +97,7 @@ const BoxDecorator: {[name: string]: Decorator  } = {
     return {text: '~ 0.0'}
   },
   toggle: function (box, g, _rect) {
-    const decoration = document.createElementNS("http://www.w3.org/2000/svg", "path")
+    const decoration = document.createElementNS(SVG_NS, "path")
     decoration.classList.add('decoration-fill')
     const w = box.height * 0.05 // width of line
     const w2 = w * 2
@@ -107,7 +114,7 @@ const BoxDecorator: {[name: string]: Decorator  } = {
     g.appendChild(decoration)
   },
   button: function (box, g, _rect) {
-    const decoration = document.createElementNS("http://www.w3.org/2000/svg", "path")
+    const decoration = document.createElementNS(SVG_NS, "path")
     decoration.classList.add('decoration-fill')
     // Magic number for drawing circle by bezier
     const f = 0.55228
@@ -138,6 +145,7 @@ const BoxDecorator: {[name: string]: Decorator  } = {
 class Box {
   box: any  // placeholder for original json data
   id: string
+  maxclass: string
   class: string // maxclass
   x: number
   y: number
@@ -151,6 +159,7 @@ class Box {
   constructor (data: any) {
     this.box = data.box
     this.id = this.box.id
+    this.maxclass = this.box.maxclass
     this.class = this.box.maxclass.replace(/~/, '-tilde').replace(/\W/g, '-')
     const rect = this.box.patching_rect
     this.x = rect[0]
@@ -178,8 +187,8 @@ class Box {
   }
 
   svg (patcher: any) {
-    const g = document.createElementNS("http://www.w3.org/2000/svg", "g")
-    const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect")
+    const g = document.createElementNS(SVG_NS, "g")
+    const rect = document.createElementNS(SVG_NS, "rect")
     g.appendChild(rect);
     rect.setAttribute("x", this.x.toString())
     rect.setAttribute("y", this.y.toString())
@@ -192,7 +201,7 @@ class Box {
     const decorator = BoxDecorator[(this.box.maxclass || '').toLowerCase()]
     const decorated = decorator ? (decorator(this, g, rect) || {}) : {}
 
-    const textElem = document.createElementNS("http://www.w3.org/2000/svg", "foreignObject")
+    const textElem = document.createElementNS(SVG_NS, "foreignObject")
     const innerRect = decorated.rect || this
     textElem.setAttribute("x", innerRect.x.toString())
     textElem.setAttribute("y", innerRect.y.toString())
@@ -223,7 +232,7 @@ class Box {
 
     for (let i = 0; i < this.numInlets; i++) {
       const portPos = this.inlet(i)
-      const arc = document.createElementNS("http://www.w3.org/2000/svg", "path")
+      const arc = document.createElementNS(SVG_NS, "path")
       arc.setAttribute('d', `M ${portPos.x - PORT_RADIUS} ${portPos.y} A ${PORT_RADIUS} ${PORT_RADIUS} 0 0 0 ${portPos.x + PORT_RADIUS} ${portPos.y}`)
       arc.classList.add('inlet')
       g.appendChild(arc)
@@ -239,7 +248,7 @@ class Box {
     }
     for (let i = 0; i < this.numOutlets; i++) {
       const portPos = this.outlet(i)
-      const arc = document.createElementNS("http://www.w3.org/2000/svg", "path")
+      const arc = document.createElementNS(SVG_NS, "path")
       arc.setAttribute('d', `M ${portPos.x - PORT_RADIUS} ${portPos.y} A ${PORT_RADIUS} ${PORT_RADIUS} 0 0 1 ${portPos.x + PORT_RADIUS} ${portPos.y}`)
       arc.classList.add('outlet')
       g.appendChild(arc)
@@ -260,12 +269,12 @@ class Box {
   }
 }
 
-type NamedMaxPat = { name: string, patcher: MaxPat }
+type NamedMaxPat = { name: string, path: string[], patcher: MaxPat }
 
 class MaxPat {
   boxes: { [id: string]: Box }
   lines: any[]
-  children: { name: string, patcher: MaxPat }[]
+  children: NamedMaxPat[]
   x: number
   y: number
   width: number
@@ -312,7 +321,7 @@ class MaxPat {
         const child = new MaxPat(boxData.box)
         // cspell:ignore atcher
         const childName = boxData.box.text.replace(/^p(atcher)?\s+/i, '')
-        this.children.push({ name: childName || boxData.box.id, patcher: child })
+        this.children.push({ name: childName || boxData.box.id, path: [], patcher: child })
       }
       this.boxes[box.id] = box
     }
@@ -337,7 +346,7 @@ class MaxPat {
 
   subPatchers (parentName: string = ''): NamedMaxPat[] {
     return [
-      ...this.children.map( child => ({ name: parentName + '/' + child.name, patcher: child.patcher }) ),
+      ...this.children.map( child => ({ name: parentName + '/' + child.name, path: [ ], patcher: child.patcher }) ),
       ...this.children.reduce( (acc: NamedMaxPat[], cur: NamedMaxPat ) => [ ...acc, ...cur.patcher.subPatchers(parentName + '/' + cur.name)], [])
     ]
   }
@@ -360,7 +369,7 @@ class MaxPat {
   }
 
   svg() {
-    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    const svg = document.createElementNS(SVG_NS, "svg");
     svg.setAttribute('width', this.width.toString())
     svg.setAttribute('height', this.height.toString())
     svg.setAttribute('viewBox', [this.x, this.y, this.width, this.height].join(' '))
@@ -396,7 +405,7 @@ class MaxPat {
       const start = sourceBox.outlet(line.patchline.source[1])
       const end = destBox.inlet(line.patchline.destination[1])
 
-      const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      const path = document.createElementNS(SVG_NS, "path");
       const lineSignature = [
         line.patchline.source.join('_'),
         line.patchline.destination.join('_')
