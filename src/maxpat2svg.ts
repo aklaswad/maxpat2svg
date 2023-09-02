@@ -210,10 +210,10 @@ class Box {
     const html = document.createElementNS("http://www.w3.org/1999/xhtml", 'html')
     const div = document.createElement('div')
     if (
-         (this.box.fontname && patcher.patcher.default_fontname !== this.box.fontname )
-      || (this.box.fontsize && patcher.patcher.default_fontsize !== this.box.fontsize )
+         (this.box.fontname && patcher.patcher?.default_fontname !== this.box.fontname )
+      || (this.box.fontsize && patcher.patcher?.default_fontsize !== this.box.fontsize )
     ) {
-      div.setAttribute('style', `font-size: ${this.box.fontsize || patcher.patcher.default_fontsize}px; font-family: '${this.box.fontname || patcher.patcher.default_fontname};`)
+      div.setAttribute('style', `font-size: ${this.box.fontsize || patcher.patcher?.default_fontsize}px; font-family: '${this.box.fontname || patcher.patcher?.default_fontname};`)
     }
     div.setAttribute('width', '100%')
     div.setAttribute('height', '100%')
@@ -281,22 +281,9 @@ class MaxPat {
   height: number
   patcher: any // Place to keep original JSON content
 
-  empty () {
-    this.boxes = {}
-    this.children = []
-    this.x = 0
-    this.y = 0
-    this.width = 140
-    this.height = 140
-    this.patcher = {}
-    this.lines = []
-    return this
-  }
-
   constructor (patcher: any) {
     this.boxes = {}
     this.children = []
-    this.patcher = patcher.patcher
     this.x = 0
     this.y = 0
     this.width = 0
@@ -304,12 +291,13 @@ class MaxPat {
     this.lines = []
 
     if ( !patcher.patcher ) {
-      return this.empty()
+      return this
     }
     const boxList = patcher.patcher.boxes
     if ( boxList.length === 0 ) {
-      return this.empty()
+      return this
     }
+    this.patcher = patcher.patcher
     let minX = Number.POSITIVE_INFINITY, minY = Number.POSITIVE_INFINITY, maxX = Number.NEGATIVE_INFINITY, maxY = Number.NEGATIVE_INFINITY;
     for ( const boxData of boxList ) {
       const box = new Box(boxData)
@@ -325,9 +313,11 @@ class MaxPat {
       }
       this.boxes[box.id] = box
     }
+    this.x = minX - 20
+    this.y = minY - 20
     this.width = maxX - minX + 40
     this.height = maxY - minY + 40
-    this.lines = patcher.patcher.lines
+    this.lines = this.patcher.lines
     for ( const line of this.lines ) {
       const src = line.patchline.source
       const dst = line.patchline.destination
@@ -352,10 +342,12 @@ class MaxPat {
   }
 
   gatherViewBoxWith(anotherPatcher: MaxPat) {
+    const right = Math.max(this.x + this.width, anotherPatcher.x + anotherPatcher.width)
+    const bottom = Math.max(this.y + this.height, anotherPatcher.y + anotherPatcher.height)
     this.x      = anotherPatcher.x      =   Math.min(this.x, anotherPatcher.x),
     this.y      = anotherPatcher.y      =   Math.min(this.y, anotherPatcher.y),
-    this.width  = anotherPatcher.width  =   Math.max(this.width, anotherPatcher.width),
-    this.height = anotherPatcher.height =   Math.max(this.height, anotherPatcher.height)
+    this.width  = anotherPatcher.width  =   right - this.x
+    this.height = anotherPatcher.height =   bottom - this.y
   }
 
   isEqualTo(anotherPatcher: MaxPat) {
@@ -380,8 +372,8 @@ class MaxPat {
     // XXX: not sure the relation between svg logical size and foreignObject's pixel size...
     style.innerHTML = `
     svg[data-${uuid}] * {
-      font-size: ${this.patcher.default_fontsize}px;
-      font-family: '${this.patcher.default_fontname}';
+      font-size: ${this.patcher?.default_fontsize}px;
+      font-family: '${this.patcher?.default_fontname}';
       fill: none;
     }
     svg[data-${uuid}] div {
