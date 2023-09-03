@@ -35,6 +35,106 @@ function deepEqual (left: any, right: any) {
 }
 
 type BoxDefinition = { x: number, y: number, width: number, height: number}
+
+/*
+function hasBoxDefinition(arg: unknown): arg is BoxDefinition {
+  return typeof arg === 'object' && arg !== null
+    && 'x' in arg && typeof arg.x === 'number'
+    && 'y' in arg && typeof arg.y === 'number'
+    && 'width' in arg && typeof arg.width === 'number'
+    && 'height' in arg && typeof arg.height === 'number'
+}
+*/
+
+type PatchLineNode = {
+  patchline: PatchLine
+}
+
+type PatchLine = {
+  destination: [ id: string, inletIndex: number ],
+  source: [ id: string, outletIndex: number ],
+  midpoints?: number[],
+}
+
+function isPatchLineNode (arg: unknown): arg is PatchLineNode {
+  return typeof arg === 'object' && arg !== null
+    && 'patchline' in arg && isPatchLine(arg.patchline)
+}
+
+function isPatchLine(arg: unknown): arg is PatchLine {
+  if ( !(typeof arg === 'object' && arg !== null) ) {
+    return false
+  }
+  if ( 'midpoints' in arg ) {
+    if ( ! Array.isArray(arg.midpoints) ) {
+      return false
+    }
+    if ( ! arg.midpoints.every( mp => 'number' === typeof mp ) ) {
+      return false
+    }
+  }
+  if ( !( 'destination' in arg && Array.isArray(arg.destination)
+    && arg.destination.length == 2
+    && typeof arg.destination[0] === 'string' && typeof arg.destination[1] === 'number'
+    && 'source' in arg && Array.isArray(arg.source)
+    && arg.source.length > 1
+    && typeof arg.source[0] === 'string' && typeof arg.source[1] === 'string' )
+  ) {
+    return false
+  }
+  return true
+}
+
+type PatcherNode = {
+  patcher: PatcherInfo
+}
+
+type PatcherInfo = {
+  default_fontsize: number,
+  default_fontname: string,
+  boxes: BoxNode[]
+  lines: PatchLineNode[]
+}
+
+type BoxNode = {
+  box: BoxInfo
+}
+
+function isBoxNode (arg: unknown): arg is BoxNode {
+  return typeof arg === 'object' && arg !== null
+    && 'box' in arg && isBoxInfo(arg.box)
+}
+
+type RectArray = [ left: number, top: number, width: number, height: number ]
+
+type BoxInfo = {
+  id: string
+  maxclass: string
+  numinlets: number
+  numoutlets: number
+  patching_rect: RectArray
+  patcher: PatcherInfo
+  text?: string
+}
+
+function isBoxInfo (_arg: unknown): _arg is BoxInfo {
+  return true
+}
+
+function isPatcherNode(obj: unknown): obj is PatcherNode {
+  return typeof obj === 'object' && obj !== null
+    && 'patcher' in obj && isPatcherInfo(obj.patcher)
+}
+
+function isPatcherInfo(obj: unknown): obj is PatcherInfo {
+  return typeof obj === 'object' && obj !== null
+    && 'default_fontsize' in obj && typeof obj.default_fontsize === 'number'
+    && 'default_fontname' in obj && typeof obj.default_fontname === 'string'
+    && 'boxes' in obj && Array.isArray(obj.boxes) && obj.boxes.every( b => isBoxNode(b) )
+    && 'lines' in obj && Array.isArray(obj.lines) && obj.lines.every( l => isPatchLineNode(l) )
+}
+
+
 type DecoratorResponse = { rect?: BoxDefinition, text?: string }
 type Decorator = (_box: Box, _g: Element, rect: Element ) => DecoratorResponse | void
 
@@ -269,19 +369,25 @@ class Box {
   }
 }
 
-type NamedMaxPat = { name: string, path: string[], patcher: MaxPat }
+
 
 class MaxPat {
+  id: string
+  name: string
   boxes: { [id: string]: Box }
-  lines: any[]
-  children: NamedMaxPat[]
+  lines: PatchLineNode[]
   x: number
   y: number
   width: number
   height: number
-  patcher: any // Place to keep original JSON content
+  patcher?: PatcherInfo // Place to keep original JSON content
+  children: MaxPat[]
+  default_fontsize: number
+  default_fontname: string
 
-  constructor (patcher: any) {
+  constructor (patcher: unknown, name: string = '/', id: string = '/') {
+    this.id = id
+    this.name = name
     this.boxes = {}
     this.children = []
     this.x = 0
@@ -289,7 +395,12 @@ class MaxPat {
     this.width = 0
     this.height = 0
     this.lines = []
+    this.default_fontsize = 12
+    this.default_fontname = 'Arial'
 
+    if ( !isPatcherNode(patcher) ) {
+      return this
+    }
     if ( !patcher.patcher ) {
       return this
     }
@@ -298,6 +409,7 @@ class MaxPat {
       return this
     }
     this.patcher = patcher.patcher
+
     let minX = Number.POSITIVE_INFINITY, minY = Number.POSITIVE_INFINITY, maxX = Number.NEGATIVE_INFINITY, maxY = Number.NEGATIVE_INFINITY;
     for ( const boxData of boxList ) {
       const box = new Box(boxData)
@@ -308,8 +420,7 @@ class MaxPat {
       if ( boxData.box?.patcher ) {
         const child = new MaxPat(boxData.box)
         // cspell:ignore atcher
-        const childName = boxData.box.text.replace(/^p(atcher)?\s+/i, '')
-        this.children.push({ name: childName || boxData.box.id, path: [], patcher: child })
+        this.children.push(child)
       }
       this.boxes[box.id] = box
     }
@@ -317,7 +428,8 @@ class MaxPat {
     this.y = minY - 20
     this.width = maxX - minX + 40
     this.height = maxY - minY + 40
-    this.lines = this.patcher.lines
+
+    this.lines = this.patcher.lines as PatchLineNode[]
     for ( const line of this.lines ) {
       const src = line.patchline.source
       const dst = line.patchline.destination
@@ -325,8 +437,8 @@ class MaxPat {
       const srcObj = this.boxes[src[0]]
       const dstObj = this.boxes[dst[0]]
       if ( srcObj && dstObj ) {
-        srcObj.outlets[parseInt(src[1])].push( lineSignature )
-        dstObj.inlets[parseInt(dst[1])].push( lineSignature )
+        srcObj.outlets[src[1]].push( lineSignature )
+        dstObj.inlets[dst[1]].push( lineSignature )
       }
       else {
         console.warn('Found patchline connecting to non existing box.', line)
@@ -334,10 +446,10 @@ class MaxPat {
     }
   }
 
-  subPatchers (parentName: string = ''): NamedMaxPat[] {
+  subPatchers (parentName: string = ''): MaxPat[] {
     return [
-      ...this.children.map( child => ({ name: parentName + '/' + child.name, path: [ ], patcher: child.patcher }) ),
-      ...this.children.reduce( (acc: NamedMaxPat[], cur: NamedMaxPat ) => [ ...acc, ...cur.patcher.subPatchers(parentName + '/' + cur.name)], [])
+      ...this.children,
+      ...this.children.reduce( (acc: MaxPat[], cur: MaxPat ) => [ ...acc, ...cur.subPatchers(parentName + '/' + cur.name)], [])
     ]
   }
 
@@ -372,8 +484,8 @@ class MaxPat {
     // XXX: not sure the relation between svg logical size and foreignObject's pixel size...
     style.innerHTML = `
     svg[data-${uuid}] * {
-      font-size: ${this.patcher?.default_fontsize}px;
-      font-family: '${this.patcher?.default_fontname}';
+      font-size: ${this.default_fontsize}px;
+      font-family: '${this.default_fontname}';
       fill: none;
     }
     svg[data-${uuid}] div {
