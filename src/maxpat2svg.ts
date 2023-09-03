@@ -7,6 +7,7 @@
   const LINE_R: number = 10
 
 type NodeType = 'array' | 'object' | 'primitive'
+
 /**
  * Get structure type of node
  * @param value
@@ -34,25 +35,30 @@ function deepEqual (left: any, right: any) {
   return deepEqual(Object.entries(left).sort(), Object.entries(right).sort())
 }
 
-type BoxDefinition = { x: number, y: number, width: number, height: number}
 
+
+type BoxDefinition = { x: number, y: number, width: number, height: number}
 /*
-function hasBoxDefinition(arg: unknown): arg is BoxDefinition {
-  return typeof arg === 'object' && arg !== null
-    && 'x' in arg && typeof arg.x === 'number'
-    && 'y' in arg && typeof arg.y === 'number'
-    && 'width' in arg && typeof arg.width === 'number'
+const DefaultBoxDefinition: BoxDefinition = { x: 0.0, y: 0.0, width: 140.0, height: 140.0 }
+
+function isBoxDefinition(arg: unknown): arg is BoxDefinition {
+  return (
+       typeof arg === 'object' && arg !== null
+    && 'x'      in arg && typeof arg.x      === 'number'
+    && 'y'      in arg && typeof arg.y      === 'number'
+    && 'width'  in arg && typeof arg.width  === 'number'
     && 'height' in arg && typeof arg.height === 'number'
+  )
 }
 */
 
 type PatchLineNode = {
-  patchline: PatchLine
+  patchline: PatchLineData
 }
 
-type PatchLine = {
-  destination: [ id: string, inletIndex: number ],
-  source: [ id: string, outletIndex: number ],
+type PatchLineData = {
+  destination: [ toBoxId: string, inletIndex: number ],
+  source: [ fromBoxId: string, outletIndex: number ],
   midpoints?: number[],
 }
 
@@ -61,7 +67,7 @@ function isPatchLineNode (arg: unknown): arg is PatchLineNode {
     && 'patchline' in arg && isPatchLine(arg.patchline)
 }
 
-function isPatchLine(arg: unknown): arg is PatchLine {
+function isPatchLine(arg: unknown): arg is PatchLineData {
   if ( !(typeof arg === 'object' && arg !== null) ) {
     return false
   }
@@ -74,64 +80,79 @@ function isPatchLine(arg: unknown): arg is PatchLine {
     }
   }
   if ( !( 'destination' in arg && Array.isArray(arg.destination)
-    && arg.destination.length == 2
+    && arg.destination.length === 2
     && typeof arg.destination[0] === 'string' && typeof arg.destination[1] === 'number'
     && 'source' in arg && Array.isArray(arg.source)
-    && arg.source.length > 1
-    && typeof arg.source[0] === 'string' && typeof arg.source[1] === 'string' )
+    && arg.source.length === 2
+    && typeof arg.source[0] === 'string' && typeof arg.source[1] === 'number' )
   ) {
     return false
   }
   return true
 }
 
-type PatcherNode = {
-  patcher: PatcherInfo
+type BoxNode = {
+  box: BoxData
 }
 
-type PatcherInfo = {
+function isBoxNode (arg: unknown): arg is BoxNode {
+  return typeof arg === 'object' && arg !== null
+    && 'box' in arg && isBoxData(arg.box)
+}
+
+type RectArray = [ left: number, top: number, width: number, height: number ]
+
+function isRectArray (arg: unknown): arg is RectArray {
+  return Array.isArray(arg) && arg.length === 4 && arg.every(n => typeof n === 'number')
+}
+
+type BoxData = {
+  id: string
+  maxclass: string
+  fontname?: string,
+  fontsize?: number
+  numinlets: number
+  numoutlets: number
+  patching_rect: RectArray
+  patcher?: PatcherData
+  text?: string,
+}
+
+function isBoxData (arg: unknown): arg is BoxData {
+  return typeof arg === 'object' && arg !== null
+  && 'id' in arg && typeof arg.id === 'string'
+  && 'maxclass' in arg && typeof arg.maxclass === 'string'
+  && ('fontname' in arg ? typeof arg.fontname === 'string' : true )
+  && ( 'fontsize' in arg ? typeof arg.fontsize === 'number' : true )
+  && 'numinlets' in arg && typeof arg.numinlets === 'number'
+  && 'numoutlets' in arg && typeof arg.numoutlets === 'number'
+  && 'patching_rect' in arg && isRectArray(arg.patching_rect)
+  && ( 'patcher' in arg ? isPatcherData(arg.patcher) : true )
+  && ('text' in arg ? typeof arg.text === 'string' : true )
+}
+
+type PatcherNode = {
+  patcher: PatcherData
+}
+
+type PatcherData = {
   default_fontsize: number,
   default_fontname: string,
   boxes: BoxNode[]
   lines: PatchLineNode[]
 }
 
-type BoxNode = {
-  box: BoxInfo
-}
-
-function isBoxNode (arg: unknown): arg is BoxNode {
+function isPatcherNode(arg: unknown): arg is PatcherNode {
   return typeof arg === 'object' && arg !== null
-    && 'box' in arg && isBoxInfo(arg.box)
+    && 'patcher' in arg && isPatcherData(arg.patcher)
 }
 
-type RectArray = [ left: number, top: number, width: number, height: number ]
-
-type BoxInfo = {
-  id: string
-  maxclass: string
-  numinlets: number
-  numoutlets: number
-  patching_rect: RectArray
-  patcher: PatcherInfo
-  text?: string
-}
-
-function isBoxInfo (_arg: unknown): _arg is BoxInfo {
-  return true
-}
-
-function isPatcherNode(obj: unknown): obj is PatcherNode {
-  return typeof obj === 'object' && obj !== null
-    && 'patcher' in obj && isPatcherInfo(obj.patcher)
-}
-
-function isPatcherInfo(obj: unknown): obj is PatcherInfo {
-  return typeof obj === 'object' && obj !== null
-    && 'default_fontsize' in obj && typeof obj.default_fontsize === 'number'
-    && 'default_fontname' in obj && typeof obj.default_fontname === 'string'
-    && 'boxes' in obj && Array.isArray(obj.boxes) && obj.boxes.every( b => isBoxNode(b) )
-    && 'lines' in obj && Array.isArray(obj.lines) && obj.lines.every( l => isPatchLineNode(l) )
+function isPatcherData(arg: unknown): arg is PatcherData {
+  return typeof arg === 'object' && arg !== null
+    && 'default_fontsize' in arg && typeof arg.default_fontsize === 'number'
+    && 'default_fontname' in arg && typeof arg.default_fontname === 'string'
+    && 'boxes' in arg && Array.isArray(arg.boxes) && arg.boxes.every( b => isBoxNode(b) )
+    && 'lines' in arg && Array.isArray(arg.lines) && arg.lines.every( l => isPatchLineNode(l) )
 }
 
 
@@ -235,16 +256,15 @@ const BoxDecorator: {[name: string]: Decorator  } = {
       + `C ${cx -  r2} ${cy + fr2} ${cx - fr2} ${cy +  r2} ${cx     } ${cy + r2}`
       + `C ${cx + fr2} ${cy +  r2} ${cx +  r2} ${cy + fr2} ${cx + r2} ${cy     }`
       + `C ${cx +  r2} ${cy - fr2} ${cx + fr2} ${cy -  r2} ${cx     } ${cy - r2}`
-
-
     )
     g.appendChild(decoration)
   },
 }
 
 class Box {
-  box: any  // placeholder for original json data
+  box: BoxData  // placeholder for original json data
   id: string
+  text: string
   maxclass: string
   class: string // maxclass
   x: number
@@ -256,9 +276,13 @@ class Box {
   inlets: string[][]
   outlets: string[][]
 
-  constructor (data: any) {
+  constructor (data: unknown) {
+    if ( ! isBoxNode(data) ) {
+      throw "It's not box"
+    }
     this.box = data.box
     this.id = this.box.id
+    this.text = data.box.text || ''
     this.maxclass = this.box.maxclass
     this.class = this.box.maxclass.replace(/~/, '-tilde').replace(/\W/g, '-')
     const rect = this.box.patching_rect
@@ -369,8 +393,6 @@ class Box {
   }
 }
 
-
-
 class MaxPat {
   id: string
   name: string
@@ -380,7 +402,7 @@ class MaxPat {
   y: number
   width: number
   height: number
-  patcher?: PatcherInfo // Place to keep original JSON content
+  patcher?: PatcherData // Place to keep original JSON content
   children: MaxPat[]
   default_fontsize: number
   default_fontname: string
@@ -418,7 +440,7 @@ class MaxPat {
       if ( box.x + box.width > maxX ) maxX = box.x + box.width
       if ( box.y + box.height > maxY ) maxY = box.y + box.height
       if ( boxData.box?.patcher ) {
-        const child = new MaxPat(boxData.box)
+        const child = new MaxPat(boxData.box, `${this.name}::${box.text || box.id}`, `${this.id}::${box.id}`)
         // cspell:ignore atcher
         this.children.push(child)
       }

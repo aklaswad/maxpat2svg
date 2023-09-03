@@ -124,17 +124,19 @@ function renderDiffItems(items) {
         const block = createDiffBlock(name, id, leftPatcher, rightPatcher)
         wrapper.appendChild(block)
 
-        const leftChildren = Object.fromEntries(leftPatcher.subPatchers().map(c => [c.name, c.patcher]))
-        const rightChildren = Object.fromEntries(rightPatcher.subPatchers().map(c => [c.name, c.patcher]))
+        const leftChildren = leftPatcher.subPatchers()
+        const leftChildrenMap = Object.fromEntries(leftChildren.map( c => [c.name, c]))
+        const rightChildren = rightPatcher.subPatchers()
+        const rightChildrenMap = Object.fromEntries(rightChildren.map( c => [c.name, c]))
         const childrenNames = Object.keys(Object.fromEntries(
-          [...Object.keys(leftChildren), ...Object.keys(rightChildren)].map(c => [c, 1])
+          [...leftChildren.map(c => c.name), ...rightChildren.map(c => c.name)].map(n => [n, 1])
         )).sort((a, b) => a < b ? -1 : 1)
         for (const childName of childrenNames) {
           const block = createDiffBlock(
             name + '#' + childName,
             (name + '--' + childName).replace(/\W/, '-'),
-            leftChildren[childName] || new MaxPat({}),
-            rightChildren[childName] || new MaxPat({})
+            leftChildrenMap[childName] || new MaxPat({}),
+            rightChildrenMap[childName] || new MaxPat({})
           )
           wrapper.appendChild(block)
         }
@@ -206,6 +208,7 @@ function createEmptyBlock(name, id, message) {
 }
 
 function createDiffBlock(name, id, leftPatcher, rightPatcher) {
+  console.log(leftPatcher,rightPatcher)
   leftPatcher.gatherViewBoxWith(rightPatcher)
   const same = leftPatcher.isEqualTo(rightPatcher)
   const patcherDiff = document.createElement('div')
