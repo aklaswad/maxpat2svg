@@ -544,22 +544,31 @@
         let points: number[] = []
         if (line.patchline.midpoints && line.patchline.midpoints.length) {
           points = [...line.patchline.midpoints, end.x, end.y]
+          for (let i = 0; i + 2 < points.length; i += 2) {
+            const midX = points[i], midY = points[i + 1], nextX = points[i + 2], nextY = points[i + 3]
+            let l1X = midX - (prevX < midX ? Math.min(midX - prevX, LINE_R) : -1 * Math.min(prevX - midX, LINE_R))
+            let l1Y = midY - (prevY < midY ? Math.min(midY - prevY, LINE_R) : -1 * Math.min(prevY - midY, LINE_R))
+            let l2X = midX + (midX < nextX ? Math.min(nextX - midX, LINE_R) : -1 * Math.min(midX - nextX, LINE_R))
+            let l2Y = midY + (midY < nextY ? Math.min(nextY - midY, LINE_R) : -1 * Math.min(midY - nextY, LINE_R))
+            d += ` L ${l1X} ${l1Y} Q ${midX} ${midY}, ${l2X} ${l2Y}`
+            prevX = l2X
+            prevY = l2Y
+          }
+          d += ` L ${end.x} ${end.y}`;
         }
         else if (Math.pow(start.x - end.x, 2) + Math.pow(start.y - end.y, 2) > LINE_R * LINE_R) {
-          points = [start.x, start.y + 10, end.x, end.y - 10, end.x, end.y]
-        }
-        for (let i = 0; i + 2 < points.length; i += 2) {
-          const midX = points[i], midY = points[i + 1], nextX = points[i + 2], nextY = points[i + 3]
-          let l1X = midX - (prevX < midX ? Math.min(midX - prevX, LINE_R) : -1 * Math.min(prevX - midX, LINE_R))
-          let l1Y = midY - (prevY < midY ? Math.min(midY - prevY, LINE_R) : -1 * Math.min(prevY - midY, LINE_R))
-          let l2X = midX + (midX < nextX ? Math.min(nextX - midX, LINE_R) : -1 * Math.min(midX - nextX, LINE_R))
-          let l2Y = midY + (midY < nextY ? Math.min(nextY - midY, LINE_R) : -1 * Math.min(midY - nextY, LINE_R))
-          d += ` L ${l1X} ${l1Y} Q ${midX} ${midY}, ${l2X} ${l2Y}`
-          prevX = l2X
-          prevY = l2Y
-        }
-        d += ` L ${end.x} ${end.y}`;
+          /*
+          const dist = Math.sqrt(Math.pow(end.x - start.x, 2) + Math.pow(end.y - start.y, 2))
+          const mx = start.x + (end.x - start.x)/2
+          */
+          const my = start.y + (end.y - start.y)/2
 
+          d += ` C ${start.x} ${Math.max(my, start.y + 15)}, ${end.x} ${Math.min(my, end.y - 15)}, ${end.x} ${end.y}`
+
+        }
+        else {
+          d += ` L ${end.x} ${end.y}`;
+        }
         path.setAttribute("d", d);
         svg.appendChild(path);
       }
