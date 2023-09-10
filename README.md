@@ -45,7 +45,7 @@ Here is a bookmarklet to open online diff.html hosted on GitHub pages. Copy this
 javascript:window.open('https://aklaswad.github.io/maxpat2svg/diff.html?url=' + location.href, '_blank')
 ```
 
-Or go to https://aklaswad.github.io/maxpat2svg/ for Drag'n'drop.
+Or go to https://aklaswad.github.io/maxpat2svg/bookmarklet.html for Drag'n'drop.
 
 > [!NOTE]
 > Online plain HTML version has no authentication for GitHub, it means you will get a 60 requests/hour rate limit.
