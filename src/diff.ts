@@ -1,83 +1,5 @@
 
-// GitHub support
-const fetchOptionJSON = {
-  redirect: 'follow',
-  headers: {
-    'Accept': 'application/vnd.github+json',
-    'X-GitHub-Api-Version': '2022-11-28'
-  }
-}
-
-async function fetchContent(owner, repo, path, ref) {
-  const url = `https://raw.githubusercontent.com/${owner}/${repo}/${ref ? ref + '/' : ''}${path}`
-  const res = await fetch(url)
-  const content = await res.text()
-  return content
-}
-
-// TODO: Throttle
-async function resolveFiles(owner, repo, leftRef, rightRef, fileList) {
-  const files = fileList.map(f => ({}))
-  const workers = []
-  for (const idx in fileList) {
-    const file = fileList[idx]
-    if (! /\.max(pat|help)/.test(file.filename)) {
-      files[idx]['left'] = '{}'
-      files[idx]['right'] = '{}'
-    }
-    else if (file.status === 'added') {
-      files[idx]['left'] = '{}'
-      workers.push((async () => files[idx]['right'] = await fetchContent(owner, repo, file.filename, rightRef))())
-    }
-    else if (file.status === 'removed') {
-      workers.push((async () => files[idx]['left'] = await fetchContent(owner, repo, file.filename, leftRef))())
-      files[idx]['right'] = '{}'
-    }
-    else {
-      workers.push((async () => files[idx]['left'] = await fetchContent(owner, repo, file.filename, leftRef))())
-      workers.push((async () => files[idx]['right'] = await fetchContent(owner, repo, file.filename, rightRef))())
-    }
-    files[idx]['name'] = file.filename
-  }
-  await Promise.all(workers)
-  return files
-}
-
-async function fetchFromCommit(owner, repo, ref) {
-  let url = `https://api.github.com/repos/${owner}/${repo}/commits/${ref}`
-  const res = await fetch(url, fetchOptionJSON)
-  const content = await res.json()
-  return resolveFiles(
-    owner,
-    repo,
-    content.parents[0].sha,
-    content.sha,
-    content.files
-  )
-}
-
-async function fetchFromCompare(owner, repo, compareSpec) {
-  let url = `https://api.github.com/repos/${owner}/${repo}/compare/${compareSpec}`
-  const res = await fetch(url, fetchOptionJSON)
-  const json = await res.json()
-  const [left, right] = compareSpec.split(/\.\.+/)
-  return resolveFiles(
-    owner,
-    repo,
-    left,
-    right,
-    json.files
-  )
-}
-
-async function fetchFromPull(owner, repo, pullNumber) {
-  let url = `https://api.github.com/repos/${owner}/${repo}/pulls/${pullNumber}`
-  const res = await fetch(url, fetchOptionJSON)
-  const json = await res.json()
-  return fetchFromCompare(owner, repo, json.base.sha + '...' + json.head.sha)
-}
-
-async function loadFromGitHub(owner, repo, type, params) {
+async function loadFromGitHub(owner: string, repo: string, type: GitHubURLType, params: string[] ) {
   const files = await fetchFromGitHub(owner, repo, type, params)
   if (!files) {
     showZeroState()
@@ -94,17 +16,6 @@ async function loadFromGitHub(owner, repo, type, params) {
     listItems.push(li)
   }
   renderDiffItems(listItems)
-}
-
-async function fetchFromGitHub(owner, repo, type, params) {
-  switch (type) {
-    case 'commit':
-      return await fetchFromCommit(owner, repo, params[0])
-    case 'pull':
-      return await fetchFromPull(owner, repo, params[0])
-    case 'compare':
-      return await fetchFromCompare(owner, repo, params[0])
-  }
 }
 
 function renderDiffItems(items) {
@@ -252,50 +163,7 @@ function showZeroState() {
   wrapper.textContent = 'No contents to show'
 }
 
-window.addEventListener("load", (event) => {
-  const search = document.location.search
-  const items = document.querySelectorAll('.diff-item')
-  if (search) {
-    const params = new URLSearchParams(search);
-    const url = params.get('url')
-    if (url) {
-      const regex = new RegExp('^https://github.com/([^/]+)/([^/]+)/([^/]+)/?(.*)$')
-      const match = url.match(regex, url)
-      if (match) {
-        const owner = match[1]
-        const repo = match[2]
-        const type = match[3]
-        const params = match[4].split('/')
-        document.getElementById('wrapper').textContent = `Going to fetch content from ${match[0]}`
-        loadFromGitHub(owner, repo, type, params)
-      }
-      else {
-        showZeroState()
-      }
-    }
-    else {
-      showZeroState()
-    }
-  }
-  else if (items.length) {
-    renderDiffItems(items)
-  }
-  else {
-    showZeroState()
-  }
-  const slider = document.getElementById('left-right-ratio')
-  slider.addEventListener('input', function changeRatio(evt) {
-    const value = parseInt(evt.target.value)
-    const leftWrappers = document.querySelectorAll('.opened .svg-wrapper-left')
-    for (const leftWrapper of leftWrappers) {
-      leftWrapper.setAttribute('style', 'opacity: ' + Math.min(1.0, value * 1.7 / 1000))
-    }
-    const rightWrappers = document.querySelectorAll('.opened .svg-wrapper-right')
-    for (const rightWrapper of rightWrappers) {
-      rightWrapper.setAttribute('style', 'opacity: ' + Math.min(1.0, (1000 - value) * 1.7 / 1000))
-    }
-  })
-});
+
 
 function selectBox(target) {
   document.getElementById('object-viewer-wrapper').setAttribute('style', 'display: none;')
@@ -426,3 +294,4 @@ function handleSVGClick(evt) {
     JSON.parse(right ? right.dataset.box : '{}')
   )
 }
+

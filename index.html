@@ -1,9 +1,16 @@
-<html>
-    <h1>maxpat2svg</h1>
-    See <a href="https://github.com/aklaswad/maxpat2svg">https://github.com/aklaswad/maxpat2svg</a> for usage.
-    <h2>Bookmarklet</h2>
-    Drag this link to your browser's bookmark bar, and try it on GitHub's commit page which includes changes for `*.maxpat` (or `*.maxhelp`) files.
-    <ul>
-      <li><a href="javascript:window.open('https://aklaswad.github.io/maxpat2svg/diff.html?url=' + location.href, '_blank')">maxdiff</a></li>
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <!-- <link rel="icon" type="image/svg+xml" href="/vite.svg" /> -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Maxpat Viewer</title>
+  </head>
+  <body>
+    <ul id="embed-files" style="display: none">
+      <!-- __ITEMS__ -->
     </ul>
+    <div id="app"></div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
 </html>
