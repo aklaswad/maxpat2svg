@@ -3,8 +3,12 @@
 set -ueo pipefail
 
 port=8444
+
+left="$1"
+right="$2"
+
 health_url="http://localhost:${port}/_health"
-target_url="http://localhost:${port}/" #TODO
+target_url="http://localhost:${port}/diff?left=${left}&right=${right}" #TODO
 
 if ! type curl > /dev/null 2>&1; then
   echo "Curl is not installed. Aborted." >&2
@@ -13,6 +17,10 @@ fi
 
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 cd "$SCRIPT_DIR" || exit 1
+
+wait_read () {
+  sleep 5
+}
 
 open_file () {
   file="$1"
@@ -35,6 +43,7 @@ open_url () {
 # At first, once try opening the page. If it responds, http server is already running
 if curl "$health_url" > /dev/null 2>&1; then
   open_url "$target_url"
+  wait_read
   exit
 fi
 
@@ -60,3 +69,4 @@ while true; do
 done
 
 open_url "$target_url"
+wait_read
