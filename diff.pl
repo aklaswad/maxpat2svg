@@ -8,6 +8,10 @@ use FindBin;
 use feature qw( say );
 
 my ($left, $right) = @ARGV;
+use Data::Dumper;
+print STDERR "hello\n";
+print "goodbye\n";
+print Dumper [$left, $right];
 my @items;
 my $WAIT_AFTER_LAUNCH = 1;
 

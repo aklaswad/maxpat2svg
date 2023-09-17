@@ -1,0 +1,32 @@
+body {
+    background: #eee;
+    word-break: break-all;
+    white-space: normal;
+}
+
+body,
+ul,
+li,
+dl,
+div,
+table,
+tr,
+th,
+td {
+    margin: 0;
+    padding: 0;
+    font-size: 12px;
+    text-align: left;
+}
+
+ul,
+ol {
+    list-style: none;
+}
+
+a,
+a:hover,
+a:active {
+    color: #000;
+    font-weight: bold;
+}
