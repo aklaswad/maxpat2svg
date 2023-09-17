@@ -42,7 +42,7 @@ Currently, only these URL forms are supported.
 Here is a bookmarklet to open online diff.html hosted on GitHub pages. Copy this snippet and save as bookmark.
 
 ```
-javascript:window.open('https://aklaswad.github.io/maxpat2svg/diff.html?url=' + location.href, '_blank')
+javascript:window.open('https://aklaswad.github.io/maxpat2svg/?url=' + location.href, '_blank')
 ```
 
 Or go to https://aklaswad.github.io/maxpat2svg/bookmarklet.html for Drag'n'drop.
