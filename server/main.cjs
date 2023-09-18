@@ -5,7 +5,7 @@ const URL = require('node:url')
 const path = require('node:path')
 const QueryString = require('node:querystring')
 
-const port = 8444
+const port = 8074
 const memCache = {}
 
 async function readdirRecursively (dir, files = []) {

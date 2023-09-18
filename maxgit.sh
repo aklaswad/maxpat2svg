@@ -2,7 +2,7 @@
 
 set -ueo pipefail
 
-port=8444
+port=8074
 
 left="$1"
 right="$2"
