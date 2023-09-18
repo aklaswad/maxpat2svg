@@ -21,8 +21,8 @@
     $diffFiles = files.map( f => f.name )
   }
 
-  async function loadFromLocal(left: string, right: string) {
-    const res = await fetch(`/diff?left=${left}&right=${right}`)
+  async function loadFromLocal(left: string, right: string, reqid: string) {
+    const res = await fetch(`/diff?left=${left}&right=${right}&reqid=${reqid}`)
     const json = await res.json()
     json.forEach( f => {
       f.leftPatcher = new MaxPat(JSON.parse(f.left || '{}'), f.name)
@@ -46,6 +46,7 @@
       const url = params.get("url")
       const left = params.get('left')
       const right = params.get('right')
+      const reqid = params.get('reqid')
       if (url) {
         const regex = new RegExp(
           "^https://github.com/([^/]+)/([^/]+)/([^/]+)/?(.*)$"
@@ -60,7 +61,7 @@
         }
       }
       else if (left && right) {
-        loader = loadFromLocal(left, right)
+        loader = loadFromLocal(left, right, reqid)
       }
       else {
         loader = new Promise( (_r, e) => {

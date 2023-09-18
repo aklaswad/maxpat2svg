@@ -4,6 +4,7 @@ const http = require('node:http')
 const URL = require('node:url')
 const path = require('node:path')
 const QueryString = require('node:querystring')
+const crypto = require('node:crypto')
 
 const port = 8074
 const memCache = {}
@@ -86,7 +87,13 @@ async function handleLocalDiff(args) {
 
   args.res.writeHead(200, { "Content-Type": 'application/json' })
   args.res.end(JSON.stringify(Object.values(files)), "utf-8")
+  if ( query.reqid && observedRequestId[query.reqid] ) {
+    observedRequestId[query.reqid]()
+  }
 }
+
+
+/* Web server */
 
 async function handleStaticFiles (args) {
   const url = args.url
@@ -108,6 +115,38 @@ async function handleStaticFiles (args) {
   args.res.end(page, "utf-8")
 }
 
+const observedRequestId = {}
+async function handleObserveRequest (args) {
+  if ( args.req.method === 'POST' ) {
+    const uuid = crypto.randomUUID()
+    observedRequestId[uuid] = () => {
+      delete observedRequestId[uuid]
+    }
+    args.res.writeHead(200, {"Content-Type": 'text/plain'})
+    args.res.end(uuid, "utf-8")
+  }
+  else {
+    const query = QueryString.parse(args.url.search.replace(/^\?/, ''))
+    const id = query.reqid
+    if ( observedRequestId[id] ) {
+      observedRequestId[id] = () => {
+        delete observedRequestId[id]
+        args.res.writeHead(200, {"Content-Type": 'text/plain'})
+        args.res.end("Done", "utf-8")
+      }
+    }
+    else {
+      args.res.writeHead(200, {"Content-Type": 'text/plain'})
+      args.res.end("Already done or wrong id", "utf-8")
+    }
+  }
+}
+
+async function handleHealthRequest (args) {
+  args.res.writeHead(200, {"Content-Type": 'text/plain'})
+  args.res.end("", "utf-8")
+}
+
 http
   .createServer(async function (req, res) {
     const url = URL.parse(req.url)
@@ -115,6 +154,8 @@ http
     switch (paths[1]) {
       case 'diff': return handleLocalDiff({url, req, res})
       case 'github': return handleGitHubRequest({url, req, res})
+      case '_observe': return handleObserveRequest({url, req, res})
+      case '_health': return handleHealthRequest({url, req, res})
       default: return handleStaticFiles({url, req, res})
     }
   })
