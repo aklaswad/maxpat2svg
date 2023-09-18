@@ -8,6 +8,10 @@ const QueryString = require('node:querystring')
 const port = 8074
 const memCache = {}
 
+function maybePatcherFile (fn) {
+  return /\.(?:maxpat|maxhelp)$/.test(fn)
+}
+
 async function readdirRecursively (dir, files = []) {
   const paths = await fs.readdir(dir).catch(() => [])
   for (const item of paths) {
@@ -59,15 +63,24 @@ async function handleLocalDiff(args) {
   )
   const files = {}
   for ( const fn of [...Object.keys(leftFiles), ...Object.keys(rightFiles)] ) {
-    files[fn].name = fn
+    files[fn] = { name: fn }
   }
   const promises = []
   for ( const fn of Object.keys(files) ) {
-    promises.push(
-      ( async (fn) => {
-        files[fn] = await getFileContentForDiff(leftFiles[fn], rightFiles[fn])
-      })(fn)
-    )
+    if ( maybePatcherFile(fn) ) {
+      promises.push(
+        ( async (fn) => {
+          files[fn] = Object.assign(
+            files[fn],
+            await getFileContentForDiff(leftFiles[fn], rightFiles[fn])
+          )
+        } )(fn)
+      )
+    }
+    else {
+      files[fn].left = '{}'
+      files[fn].right = '{}'
+    }
   }
   await Promise.all(promises)
 
