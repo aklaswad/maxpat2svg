@@ -59,9 +59,18 @@ async function handleLocalDiff(args) {
   )
   const files = {}
   for ( const fn of [...Object.keys(leftFiles), ...Object.keys(rightFiles)] ) {
-    files[fn] ??= await getFileContentForDiff(leftFiles[fn], rightFiles[fn])
     files[fn].name = fn
   }
+  const promises = []
+  for ( const fn of Object.keys(files) ) {
+    promises.push(
+      ( async (fn) => {
+        files[fn] = await getFileContentForDiff(leftFiles[fn], rightFiles[fn])
+      })(fn)
+    )
+  }
+  await Promise.all(promises)
+
   args.res.writeHead(200, { "Content-Type": 'application/json' })
   args.res.end(JSON.stringify(Object.values(files)), "utf-8")
 }
