@@ -63,7 +63,7 @@ while true; do
     echo "Launching view.maxpat failed or taking too long" >&2
     exit 1
   fi
-  printf "."
+  printf "." >&2
   : $((checks++))
   sleep 1
 done
