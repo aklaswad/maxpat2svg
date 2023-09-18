@@ -21,15 +21,32 @@
     $diffFiles = files.map( f => f.name )
   }
 
-  let loader: Promise<void>
+  async function loadFromLocal(left: string, right: string, reqid: string) {
+    const res = await fetch(`/diff?left=${left}&right=${right}&reqid=${reqid}`)
+    const json = await res.json()
+    json.forEach( f => {
+      f.leftPatcher = new MaxPat(JSON.parse(f.left || '{}'), f.name)
+      f.rightPatcher = new MaxPat(JSON.parse(f.right || '{}'), f.name)
+      f.leftPatcher.gatherViewBoxWith(f.rightPatcher)
+    })
+    $diffItems = json
+    $diffFiles = json.map(f => f.name)
+  }
+
   let loadError: string
+  let loader: Promise<void> = new Promise( (_resolve, reject) => {
+    loadError = 'No items to show'
+    reject()
+  })
+
   async function init(event: Event) {
-    console.log(document.getElementById('files'))
-    console.log('init', event)
     const search = document.location.search
     if (search) {
       const params = new URLSearchParams(search)
       const url = params.get("url")
+      const left = params.get('left')
+      const right = params.get('right')
+      const reqid = params.get('reqid')
       if (url) {
         const regex = new RegExp(
           "^https://github.com/([^/]+)/([^/]+)/([^/]+)/?(.*)$"
@@ -43,25 +60,15 @@
           loader = loadFromGitHub(owner, repo, type, params);
         }
       }
+      else if (left && right) {
+        loader = loadFromLocal(left, right, reqid)
+      }
       else {
         loader = new Promise( (_r, e) => {
-          loadError = 'Unsupported format in ?url= param'; e()
+          loadError = 'Required parameters (left and right, or url) are missing'; e()
         } )
       }
     }
-    else {
-      loader = new Promise( (_r, e) => {
-        loadError = 'No items to show'; e()
-      } )
-    }
-
-    /*else if (items.length) {
-      renderDiffItems(items);
-    } else {
-      showZeroState();
-    }
-    */
-
   }
 
 </script>
