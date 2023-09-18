@@ -1,6 +1,7 @@
 <script lang="ts">
   import { MaxPat } from '../maxpat2svg'
   import { onMount } from "svelte";
+  import { diffOpacity } from '../store'
   export let patcher: MaxPat
   export let type: string
   let div: Element
@@ -11,7 +12,7 @@
   })
 </script>
 
-<div class="patcher patcher-{type}" bind:this={div} style="$lrOpacity" />
+<div class="patcher patcher-{type}" bind:this={div} style="$lrOpacity" style:opacity={$diffOpacity[type]} />
 
 <style>
   .patcher {

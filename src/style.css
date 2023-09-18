@@ -30,3 +30,19 @@ a:active {
     color: #000;
     font-weight: bold;
 }
+
+.help-keybind {
+    display: inline-block;
+    border: 1px solid #888;
+    border-radius: 5px;
+    color: #ddd;
+    background-color: #666;
+    padding: 4px;
+    margin: 3px;
+    font-size: 11px;
+    width: 13px;
+    height: 13px;
+    text-align: center;
+    line-height: 13px;
+    vertical-align: middle;
+}

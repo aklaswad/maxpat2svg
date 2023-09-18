@@ -1,7 +1,7 @@
 <script lang="ts">
   import './style.css'
   import DiffView from './components/DiffView.svelte'
-  import { diffFiles, diffItems } from './store'
+  import { diffFiles, diffItems, opacityBalance } from './store'
   import { fetchFromGitHub, type GitHubURLType, type DiffItem } from "./github"
   import MaxPat from './maxpat2svg';
 
@@ -71,6 +71,51 @@
     }
   }
 
+  let keyStateZ = false
+  let keyStateX = false
+
+  function updateOpacity () {
+    $opacityBalance = keyStateZ ? 0
+                    : keyStateX ? 1000
+                    :             500
+  }
+
+  function keyDown(evt) {
+    if ( !evt.target ) return
+    if ( !evt.target.nodeName ) return
+    if ( !(
+      evt.target.nodeName.toLowerCase() === 'body'
+      || (
+        evt.target.nodeName.toLowerCase() === 'input' && evt.target.id === 'left-right-ratio'
+      )
+    )) return
+    if ( evt.key === 'z' ) {
+      keyStateZ = true
+      $opacityBalance = 0
+    }
+    if ( evt.key === 'x' ) {
+      keyStateX = true
+      $opacityBalance = 1000
+    }
+  }
+
+  function keyUp(evt) {
+    if ( !evt.target ) return
+    if ( !evt.target.nodeName ) return
+    if ( !(
+      evt.target.nodeName.toLowerCase() === 'body'
+      || (
+        evt.target.nodeName.toLowerCase() === 'input' && evt.target.id === 'left-right-ratio'
+      )
+    )) return
+    if ( evt.key === 'z' ) {
+      keyStateZ = false
+    }
+    if ( evt.key === 'x' ) {
+      keyStateX = false
+    }
+    updateOpacity()
+  }
 </script>
 
 <style>
@@ -90,7 +135,11 @@
   }
 </style>
 
-<svelte:window on:load="{init}" />
+<svelte:window
+  on:load="{init}"
+  on:keydown="{keyDown}"
+  on:keyup="{keyUp}"
+/>
 
 {#await loader}
   <div class="load-progress">

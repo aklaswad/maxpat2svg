@@ -1,4 +1,4 @@
-import { writable, type Writable } from 'svelte/store';
+import { writable, type Writable, derived } from 'svelte/store';
 import { MaxPat } from './maxpat2svg'
 import { type DiffItem } from './github'
 
@@ -8,5 +8,14 @@ export type MaxPatFile = {
   right?: MaxPat
 }
 
+export const showInspector: Writable<boolean> = writable(false)
 export const diffFiles: Writable<string[]> = writable([''])
 export const diffItems: Writable<DiffItem[]> = writable([])
+export const opacityBalance: Writable<number> = writable(500)
+export const diffOpacity = derived(opacityBalance, ($opacityBalance) => {
+  const v = $opacityBalance / 1000
+  return {
+    right: v,
+    left: 1.0 - v
+  }
+})
