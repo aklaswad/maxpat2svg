@@ -33,8 +33,12 @@
     $diffFiles = json.map(f => f.name)
   }
 
-  let loader: Promise<void>
   let loadError: string
+  let loader: Promise<void> = new Promise( (_resolve, reject) => {
+    loadError = 'No items to show'
+    reject()
+  })
+
   async function init(event: Event) {
     const search = document.location.search
     if (search) {
@@ -60,23 +64,10 @@
       }
       else {
         loader = new Promise( (_r, e) => {
-          loadError = 'Unsupported format in ?url= param'; e()
+          loadError = 'Required parameters (left and right, or url) are missing'; e()
         } )
       }
     }
-    else {
-      loader = new Promise( (_r, e) => {
-        loadError = 'No items to show'; e()
-      } )
-    }
-
-    /*else if (items.length) {
-      renderDiffItems(items);
-    } else {
-      showZeroState();
-    }
-    */
-
   }
 
 </script>
