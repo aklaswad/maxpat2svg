@@ -8,7 +8,7 @@ left="$1"
 right="$2"
 
 health_url="http://localhost:${port}/_health"
-target_url="http://localhost:${port}/diff?left=${left}&right=${right}" #TODO
+target_url="http://localhost:${port}/?left=${left}&right=${right}"
 
 if ! type curl > /dev/null 2>&1; then
   echo "Curl is not installed. Aborted." >&2

@@ -21,15 +21,27 @@
     $diffFiles = files.map( f => f.name )
   }
 
+  async function loadFromLocal(left: string, right: string) {
+    const res = await fetch(`/diff?left=${left}&right=${right}`)
+    const json = await res.json()
+    json.forEach( f => {
+      f.leftPatcher = new MaxPat(JSON.parse(f.left || '{}'), f.name)
+      f.rightPatcher = new MaxPat(JSON.parse(f.right || '{}'), f.name)
+      f.leftPatcher.gatherViewBoxWith(f.rightPatcher)
+    })
+    $diffItems = json
+    $diffFiles = json.map(f => f.name)
+  }
+
   let loader: Promise<void>
   let loadError: string
   async function init(event: Event) {
-    console.log(document.getElementById('files'))
-    console.log('init', event)
     const search = document.location.search
     if (search) {
       const params = new URLSearchParams(search)
       const url = params.get("url")
+      const left = params.get('left')
+      const right = params.get('right')
       if (url) {
         const regex = new RegExp(
           "^https://github.com/([^/]+)/([^/]+)/([^/]+)/?(.*)$"
@@ -42,6 +54,9 @@
           const params = (match[4] || '').split("/")
           loader = loadFromGitHub(owner, repo, type, params);
         }
+      }
+      else if (left && right) {
+        loader = loadFromLocal(left, right)
       }
       else {
         loader = new Promise( (_r, e) => {

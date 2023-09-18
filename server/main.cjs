@@ -5,6 +5,7 @@ const URL = require('node:url')
 const path = require('node:path')
 const QueryString = require('node:querystring')
 
+const port = 8444
 const memCache = {}
 
 async function readdirRecursively (dir, files = []) {
@@ -65,32 +66,35 @@ async function handleLocalDiff(args) {
   args.res.end(JSON.stringify(Object.values(files)), "utf-8")
 }
 
+async function handleStaticFiles (args) {
+  const url = args.url
+  if ( memCache[url.pathname] ) {
+    content = memCache[url.pathname]
+  }
+  const pathname = url.pathname === '/' ? 'index.html' : url.pathname
+  const page = await fs.readFile(
+    path.resolve(__dirname, '..', 'dist', `./${pathname}`),
+    'utf-8'
+  ).catch(() => null)
+  if ( !page ) {
+    args.res.writeHead(400)
+    args.res.end('Not found')
+    return
+  }
+  memCache[url.pathname] = page
+  args.res.writeHead(200, { "Content-Type": contentTypeOf(pathname) })
+  args.res.end(page, "utf-8")
+}
+
 http
   .createServer(async function (req, res) {
     const url = URL.parse(req.url)
-    if ( memCache[url.pathname] ) {
-      content = memCache[url.pathname]
-    }
-    const pathname = url.pathname === '/' ? 'index.html' : url.pathname
-    const paths = pathname.split('/')
+    const paths = url.pathname.split('/')
     switch (paths[1]) {
       case 'diff': return handleLocalDiff({url, req, res})
       case 'github': return handleGitHubRequest({url, req, res})
+      default: return handleStaticFiles({url, req, res})
     }
-
-    // serve static content from dist/
-    const page = await fs.readFile(
-      path.resolve(__dirname, '..', 'dist', `./${pathname}`),
-      'utf-8'
-    ).catch(() => null)
-    if ( !page ) {
-      res.writeHead(400)
-      res.end('Not found')
-      return
-    }
-    memCache[url.pathname] = page
-    res.writeHead(200, { "Content-Type": contentTypeOf(pathname) })
-    res.end(page, "utf-8")
   })
-  .listen(8444)
+  .listen(port)
 
