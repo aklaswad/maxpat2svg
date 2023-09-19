@@ -1,6 +1,6 @@
 <script lang="ts">
   import { diffItems, showInspector, opacityBalance } from "../store";
-  import Patcher from './Patcher.svelte'
+  import DiffItem from './DiffItem.svelte'
   import Inspector from './Inspector.svelte'
 
   let showFileTree = true
@@ -33,13 +33,7 @@
 {/if}
 <div id="content-wrapper" class:show-tree="{showFileTree}">
   {#each $diffItems as item}
-    <div class="diff-wrapper">
-      <h1 class="diff-title">{item.name}</h1>
-      <div class="patcher-wrapper">
-        <Patcher type="left" patcher={item.leftPatcher} />
-        <Patcher type="right" patcher={item.rightPatcher} />
-      </div>
-    </div>
+    <DiffItem item={item} />
   {/each}
 </div>
 <div id="controls">
@@ -71,36 +65,35 @@
 <style>
   header {
     background-color: #ccc;
-    position: sticky;
+    position: fixed;
     height: 30px;
     top: 0;
+    left: 0;
+    width: 100vw;
     z-index: 10;
   }
 
   #content-wrapper {
     box-sizing: border-box;
-    width: 100%;
-    padding: 2px;
+    padding: 30px 2px;
+    position: fixed;
+    width: 100vw;
+    height: 100vh;
+    overflow: scroll;
   }
 
   #content-wrapper.show-tree {
-    padding: 2px 2px 2px 300px;
+    padding: 30px 2px 2px 300px;
   }
 
   #file-tree {
     position: fixed;
     width: 300px;
+    max-height: 100vh;
     top: 30px;
     left: 0;
+    overflow-y: scroll;
     background-color: #abc;
-  }
-  .diff-title {
-    position: sticky;
-    top: 30px;
-  }
-
-  .patcher-wrapper {
-    position: relative;
   }
 
   #controls {

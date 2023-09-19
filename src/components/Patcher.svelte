@@ -3,11 +3,10 @@
   import { onMount } from "svelte";
   import { diffOpacity } from '../store'
   export let patcher: MaxPat
-  export let type: string
+  export let type: 'left' | 'right'
   let div: Element
 
   onMount( () => {
-    console.log({patcher,div})
     div.appendChild(patcher.svg())
   })
 </script>
@@ -15,7 +14,6 @@
 <div
   class="patcher patcher-{type}"
   bind:this={div}
-  style="$lrOpacity"
   style:opacity={$diffOpacity[type]} />
 
 <style>
