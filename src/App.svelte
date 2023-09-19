@@ -6,31 +6,30 @@
   import { combineArray, deepEqual } from './util'
   import MaxPat from './maxpat2svg';
 
-
-  function setUpFileList (files) {
+  function setUpFileList (files: DiffItem[]) {
     // Extract sub patchers
     files.forEach( (f, idx) => {
       f.leftPatcher = new MaxPat(JSON.parse(f.left || '{}'), f.name)
       f.rightPatcher = new MaxPat(JSON.parse(f.right || '{}'), f.name)
     })
-    const psuedoFiles = files.reduce( (acc,cur) => {
-      const leftSubs = cur.leftPatcher.subPatchers()
-      const rightSubs = cur.rightPatcher.subPatchers()
+    // Extract sub patchers as pseudo files
+    const pseudoFiles: DiffItem[] = files.reduce( (acc: DiffItem[], cur: DiffItem) => {
+      const leftSubs = cur.leftPatcher ? cur.leftPatcher.subPatchers() : []
+      const rightSubs = cur.rightPatcher ? cur.rightPatcher.subPatchers() : []
       const subs = combineArray(
         p => p.id,
-        (l,r) => ({ sub: true, name: l ? l.name : r.name, leftPatcher: l, rightPatcher: r }),
-        cur.leftPatcher.subPatchers(),
-        cur.rightPatcher.subPatchers()
+        (l,r) => ({ sub: true, name: l ? l.name : r ? r.name : 'unknown', leftPatcher: l, rightPatcher: r }),
+        leftSubs, rightSubs
       )
       return [ ...acc, cur, ...subs]
     }, [])
-    psuedoFiles.forEach( o => {
+    pseudoFiles.forEach( o => {
       o.same = deepEqual(o.leftPatcher?.patcher, o.rightPatcher?.patcher)
       o.leftPatcher && o.rightPatcher && o.leftPatcher.gatherViewBoxWith(o.rightPatcher )
     })
 
-    $diffItems = psuedoFiles
-    $diffFiles = psuedoFiles.map( f => f.name )
+    $diffItems = pseudoFiles
+    $diffFiles = pseudoFiles.map( f => f.name || 'unknown')
 
   }
 
@@ -43,7 +42,7 @@
     setUpFileList(files)
   }
 
-  async function loadFromLocal(left: string, right: string, reqid: string) {
+  async function loadFromLocal(left: string, right: string, reqid: string | null = '') {
     const res = await fetch(`/diff?left=${left}&right=${right}&reqid=${reqid}`)
     const json = await res.json()
     setUpFileList(json)
@@ -96,8 +95,9 @@
                     :             500
   }
 
-  function keyDown(evt) {
+  function keyDown(evt: KeyboardEvent) {
     if ( !evt.target ) return
+    if ( !(evt.target instanceof Element )) return
     if ( !evt.target.nodeName ) return
     if ( !(
       evt.target.nodeName.toLowerCase() === 'body'
@@ -115,8 +115,9 @@
     }
   }
 
-  function keyUp(evt) {
+  function keyUp(evt: KeyboardEvent) {
     if ( !evt.target ) return
+    if ( !(evt.target instanceof Element )) return
     if ( !evt.target.nodeName ) return
     if ( !(
       evt.target.nodeName.toLowerCase() === 'body'
