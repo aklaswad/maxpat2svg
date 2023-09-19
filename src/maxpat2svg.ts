@@ -317,8 +317,10 @@ class Box {
     rect.setAttribute("y", this.y.toString())
     rect.setAttribute("width", this.width.toString())
     rect.setAttribute("height", this.height.toString())
+    rect.setAttribute("id", patcher.id + '-' + this.id)
     rect.classList.add(this.class, 'box-rect')
     g.classList.add('box')
+
     // TODO: move to CSS
 
     const decorator = BoxDecorator[(this.box.maxclass || '').toLowerCase()]

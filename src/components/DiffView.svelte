@@ -21,20 +21,23 @@
     <button on:click={toggleFileTree}>&gt;</button>
   {/if}
 </header>
-{#if showFileTree}
-<div id="file-tree">
-  <ul>
-    {#each $diffItems as item}
-      <li>{item.name}</li>
-    {/each}
 
-  </ul>
-</div>
-{/if}
-<div id="content-wrapper" class:show-tree="{showFileTree}">
-  {#each $diffItems as item}
-    <DiffItem item={item} />
-  {/each}
+<div id="content-wrapper" class:show-tree="{showFileTree}" class:show-inspector="{$showInspector}">
+  {#if showFileTree}
+  <div id="file-tree" class:show-inspector="{$showInspector}">
+    <ul>
+      {#each $diffItems as item}
+        <li>{item.name}</li>
+      {/each}
+
+    </ul>
+  </div>
+  {/if}
+  <div id="diff-content-wrapper">
+    {#each $diffItems as item}
+      <DiffItem item={item} />
+    {/each}
+  </div>
 </div>
 <div id="controls">
   <div id="viewer-control">
@@ -63,50 +66,83 @@
 </div>
 
 <style>
+  :root {
+    --inspector-height: 400px;
+    --header-height: 30px;
+  }
+
   header {
-    background-color: #ccc;
+    background-color: rgba(128,128,128,0.5);
     position: fixed;
-    height: 30px;
+    height: var(--header-height);
     top: 0;
     left: 0;
-    width: 100vw;
-    z-index: 10;
+    width: 100%;
+    z-index: 50;
+    overflow: hidden;
+    box-sizing: border-box;
   }
 
   #content-wrapper {
     box-sizing: border-box;
-    padding: 30px 2px;
+    padding: var(--header-height) 2px 10px 0px;
     position: fixed;
-    width: 100vw;
-    height: 100vh;
-    overflow: scroll;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
+    z-index: 0;
+    display: grid;
+    grid-template-columns: 100%;
   }
 
   #content-wrapper.show-tree {
-    padding: 30px 2px 2px 300px;
+    padding: var(--header-height) 2px 2px 0;
+    grid-template-columns: 300px calc(100% - 300px);
+  }
+
+  #content-wrapper.show-inspector {
+    height: calc(100% - min(var(--inspector-height), 50vh))
   }
 
   #file-tree {
-    position: fixed;
-    width: 300px;
-    max-height: 100vh;
-    top: 30px;
+    position: sticky;
+    max-height: 100%;
+    top: 0;
     left: 0;
-    overflow-y: scroll;
+    overflow-y: auto;
+    overflow-x: hidden;
     background-color: #abc;
+    z-index: 30;
+    padding: 4px;
+    box-sizing: border-box;
+    align-self: self-start;
+  }
+
+  #file-tree.show-inspector {
+    max-height: calc(100vh - min(var(--inspector-height), 50vh))
+  }
+
+  #diff-content-wrapper {
+    box-sizing: border-box;
+    padding: 12px;
+    display: block;
   }
 
   #controls {
     position: fixed;
-    width: 100vw;
+    width: 100%;
     bottom: 0;
     z-index: 100;
   }
 
   #viewer-control {
-    position: relative;
-    top: 0;
-    width: 300px;
+    position: absolute;
+    box-sizing: border-box;
+    top: -60px;
+    height: 40px;
     padding: 10px;
     margin: 0 0 10px 0;
     border: 1px solid #999;
@@ -116,7 +152,7 @@
   }
 
   #inspector {
-    background: #ddd;
-    height: min(400px, 50vh);
+    background: rgba(200,200,200,0.5);
+    height: min(var(--inspector-height), 50vh);
   }
 </style>
