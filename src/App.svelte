@@ -3,7 +3,36 @@
   import DiffView from './components/DiffView.svelte'
   import { diffFiles, diffItems, opacityBalance } from './store'
   import { fetchFromGitHub, type GitHubURLType, type DiffItem } from "./github"
+  import { combineArray, deepEqual } from './util'
   import MaxPat from './maxpat2svg';
+
+
+  function setUpFileList (files) {
+    // Extract sub patchers
+    files.forEach( (f, idx) => {
+      f.leftPatcher = new MaxPat(JSON.parse(f.left || '{}'), f.name)
+      f.rightPatcher = new MaxPat(JSON.parse(f.right || '{}'), f.name)
+    })
+    const psuedoFiles = files.reduce( (acc,cur) => {
+      const leftSubs = cur.leftPatcher.subPatchers()
+      const rightSubs = cur.rightPatcher.subPatchers()
+      const subs = combineArray(
+        p => p.id,
+        (l,r) => ({ sub: true, name: l ? l.name : r.name, leftPatcher: l, rightPatcher: r }),
+        cur.leftPatcher.subPatchers(),
+        cur.rightPatcher.subPatchers()
+      )
+      return [ ...acc, cur, ...subs]
+    }, [])
+    psuedoFiles.forEach( o => {
+      o.same = deepEqual(o.leftPatcher?.patcher, o.rightPatcher?.patcher)
+      o.leftPatcher && o.rightPatcher && o.leftPatcher.gatherViewBoxWith(o.rightPatcher )
+    })
+
+    $diffItems = psuedoFiles
+    $diffFiles = psuedoFiles.map( f => f.name )
+
+  }
 
   async function loadFromGitHub(owner: string, repo: string, type: GitHubURLType, params: string[] ): Promise<void> {
     const files = await fetchFromGitHub(owner, repo, type, params)
@@ -11,26 +40,13 @@
       showZeroState()
       return
     }
-    console.error(files)
-    files.forEach( f => {
-      f.leftPatcher = new MaxPat(JSON.parse(f.left || '{}'), f.name)
-      f.rightPatcher = new MaxPat(JSON.parse(f.right || '{}'), f.name)
-      f.leftPatcher.gatherViewBoxWith(f.rightPatcher)
-    })
-    $diffItems = files
-    $diffFiles = files.map( f => f.name )
+    setUpFileList(files)
   }
 
   async function loadFromLocal(left: string, right: string, reqid: string) {
     const res = await fetch(`/diff?left=${left}&right=${right}&reqid=${reqid}`)
     const json = await res.json()
-    json.forEach( f => {
-      f.leftPatcher = new MaxPat(JSON.parse(f.left || '{}'), f.name)
-      f.rightPatcher = new MaxPat(JSON.parse(f.right || '{}'), f.name)
-      f.leftPatcher.gatherViewBoxWith(f.rightPatcher)
-    })
-    $diffItems = json
-    $diffFiles = json.map(f => f.name)
+    setUpFileList(json)
   }
 
   let loadError: string

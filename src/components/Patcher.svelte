@@ -12,7 +12,11 @@
   })
 </script>
 
-<div class="patcher patcher-{type}" bind:this={div} style="$lrOpacity" style:opacity={$diffOpacity[type]} />
+<div
+  class="patcher patcher-{type}"
+  bind:this={div}
+  style="$lrOpacity"
+  style:opacity={$diffOpacity[type]} />
 
 <style>
   .patcher {
