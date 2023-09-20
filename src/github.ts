@@ -11,13 +11,14 @@ const fetchOptionJSON: RequestInit = {
 
 type GHResponseFileNode = { filename: string, status: string }
 export type DiffItem = {
+  id?: string
   sub?: boolean
+  name?: string
   same?: boolean
   left?: string
   right?: string
   leftPatcher?: MaxPat
   rightPatcher?: MaxPat
-  name?: string
 }
 
 async function fetchContent(owner: string, repo: string, path: string, ref: string) {

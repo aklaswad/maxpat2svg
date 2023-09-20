@@ -8,8 +8,13 @@ export type MaxPatFile = {
   right?: MaxPat
 }
 
+export type DiffFileItem = {
+  name: string,
+  id: string
+}
+
 export const showInspector: Writable<boolean> = writable(false)
-export const diffFiles: Writable<string[]> = writable([''])
+export const diffFiles: Writable<DiffFileItem[]> = writable([])
 export const diffItems: Writable<DiffItem[]> = writable([])
 export const opacityBalance: Writable<number> = writable(500)
 export const diffOpacity = derived(opacityBalance, ($opacityBalance) => {

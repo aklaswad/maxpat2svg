@@ -27,7 +27,7 @@
   <div id="file-tree" class:show-inspector="{$showInspector}">
     <ul>
       {#each $diffItems as item}
-        <li>{item.name}</li>
+        <li><a href="#{item.id}">{item.name}</a></li>
       {/each}
 
     </ul>
