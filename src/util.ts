@@ -55,3 +55,5 @@ export function deepEqual(left: any, right: any) {
   }
   return deepEqual(Object.entries(left).sort(), Object.entries(right).sort())
 }
+
+export type SelectEvent = Event & { targetLeft?: Element, targetRight?: Element }

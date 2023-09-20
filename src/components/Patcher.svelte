@@ -4,11 +4,13 @@
   import { diffOpacity } from '../store'
   export let patcher: MaxPat
   export let type: 'left' | 'right'
-  let div: Element
 
+  let div: Element
   onMount( () => {
+    const svg = patcher.svg()
     div.appendChild(patcher.svg())
   })
+
 </script>
 
 <div

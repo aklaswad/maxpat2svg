@@ -1,9 +1,12 @@
 <script lang="ts">
+  import { onMount } from "svelte";
   import { diffItems, showInspector, opacityBalance } from "../store";
   import DiffItem from './DiffItem.svelte'
   import Inspector from './Inspector.svelte'
-
+  import { type SelectEvent } from '../util'
+  let contents: Element
   let showFileTree = true
+
   function toggleFileTree () {
     showFileTree = !showFileTree
   }
@@ -12,6 +15,43 @@
     $showInspector = !$showInspector
   }
 
+  function handleDiffViewClick(evt: MouseEvent) {
+    const possibles = document.elementsFromPoint(evt.clientX, evt.clientY)
+    const parentCandidates = possibles
+      .filter(e => e.matches('.diff-wrapper'))
+    const parent = parentCandidates.length ? parentCandidates[0] : undefined
+    if ( !parent ) return
+    const leftCandidates = possibles
+      .filter(e => e.parentElement && e.parentElement.matches('.patcher-left g.box'))
+    const left = leftCandidates.length ? leftCandidates[0].parentElement : undefined
+    const rightCandidates = possibles
+      .filter(e => e.parentElement && e.parentElement.matches('.patcher-right g.box'))
+    const right = rightCandidates.length ? rightCandidates[0].parentElement : undefined
+
+    const selectEvent: SelectEvent
+      = new CustomEvent('box-select', { bubbles: true, cancelable: true})
+    selectEvent.targetLeft = left || undefined
+    selectEvent.targetRight = right || undefined
+
+    parent.dispatchEvent(selectEvent)
+  }
+
+  function handleFileNameClick (evt: MouseEvent) {
+    const target: HTMLElement = evt.target as HTMLElement
+    if ( !target ) return
+    const id = target.dataset.filename || ''
+    const item = $diffItems[id]
+    if ( !item || !item.select ) return
+    item.select()
+  }
+
+  onMount( () => {
+    contents.addEventListener('click', function (evt) {
+      if ( evt instanceof MouseEvent ) {
+        handleDiffViewClick(evt)
+      }
+    })
+  })
 </script>
 
 <header>
@@ -26,15 +66,14 @@
   {#if showFileTree}
   <div id="file-tree" class:show-inspector="{$showInspector}">
     <ul>
-      {#each $diffItems as item}
-        <li><a href="#{item.id}">{item.name}</a></li>
+      {#each Object.values($diffItems) as item}
+        <li><a href="#{item.id}" data-filename={item.id} on:click|preventDefault={handleFileNameClick}>{item.name}</a></li>
       {/each}
-
     </ul>
   </div>
   {/if}
-  <div id="diff-content-wrapper">
-    {#each $diffItems as item}
+  <div id="diff-content-wrapper" bind:this={contents}>
+    {#each Object.values($diffItems) as item}
       <DiffItem item={item} />
     {/each}
   </div>

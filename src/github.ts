@@ -19,6 +19,7 @@ export type DiffItem = {
   right?: string
   leftPatcher?: MaxPat
   rightPatcher?: MaxPat
+  select?: () => void
 }
 
 async function fetchContent(owner: string, repo: string, path: string, ref: string) {

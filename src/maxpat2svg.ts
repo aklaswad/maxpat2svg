@@ -317,7 +317,9 @@ class Box {
     rect.setAttribute("y", this.y.toString())
     rect.setAttribute("width", this.width.toString())
     rect.setAttribute("height", this.height.toString())
-    rect.setAttribute("id", patcher.id + '-' + this.id)
+    g.setAttribute("id", patcher.id + '-' + this.id)
+    g.dataset.patcherId = patcher.id
+    g.dataset.boxId = this.id
     rect.classList.add(this.class, 'box-rect')
     g.classList.add('box')
 

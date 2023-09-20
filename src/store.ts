@@ -15,7 +15,7 @@ export type DiffFileItem = {
 
 export const showInspector: Writable<boolean> = writable(false)
 export const diffFiles: Writable<DiffFileItem[]> = writable([])
-export const diffItems: Writable<DiffItem[]> = writable([])
+export const diffItems: Writable<{[id: string]: DiffItem}> = writable({})
 export const opacityBalance: Writable<number> = writable(500)
 export const diffOpacity = derived(opacityBalance, ($opacityBalance) => {
   const v = $opacityBalance / 1000

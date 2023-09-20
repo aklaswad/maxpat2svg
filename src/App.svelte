@@ -9,9 +9,9 @@
   function setUpFileList (files: DiffItem[]) {
     // Extract sub patchers
     files.forEach( (f, idx) => {
-      f.id = `${idx}`
-      f.leftPatcher = new MaxPat(JSON.parse(f.left || '{}'), f.name, `patcher-${idx}`)
-      f.rightPatcher = new MaxPat(JSON.parse(f.right || '{}'), f.name, `patcher-${idx}`)
+      f.id = `file-${idx}`
+      f.leftPatcher = new MaxPat(JSON.parse(f.left || '{}'), f.name, `file-${idx}`)
+      f.rightPatcher = new MaxPat(JSON.parse(f.right || '{}'), f.name, `file-${idx}`)
     })
     // Extract sub patchers as pseudo files
     const pseudoFiles: DiffItem[] = files.reduce( (acc: DiffItem[], cur: DiffItem) => {
@@ -33,9 +33,10 @@
     pseudoFiles.forEach( (o) => {
       o.same = deepEqual(o.leftPatcher?.patcher, o.rightPatcher?.patcher)
       o.leftPatcher && o.rightPatcher && o.leftPatcher.gatherViewBoxWith(o.rightPatcher )
+      console.log(o.id)
     })
 
-    $diffItems = pseudoFiles
+    $diffItems = Object.fromEntries( pseudoFiles.map( f => [f.id, f]) )
   }
 
   async function loadFromGitHub(owner: string, repo: string, type: GitHubURLType, params: string[] ): Promise<void> {
