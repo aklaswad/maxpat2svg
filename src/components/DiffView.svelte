@@ -67,7 +67,16 @@
   <div id="file-tree" class:show-inspector="{$showInspector}">
     <ul>
       {#each Object.values($diffItems) as item}
-        <li><a href="#{item.id}" data-filename={item.id} on:click|preventDefault={handleFileNameClick}>{item.name}</a></li>
+        <li>
+          <a href="#{item.id}" data-filename={item.id} on:click|preventDefault={handleFileNameClick}>{item.name}</a>
+          {#if item.subPatchers && item.subPatchers.length}
+          <ul>
+            {#each item.subPatchers as sub}
+              <li><a href="#{sub.id}" data-filename={sub.id} on:click|preventDefault={handleFileNameClick}>{sub.name}</a></li>
+            {/each}
+          </ul>
+          {/if}
+        </li>
       {/each}
     </ul>
   </div>
@@ -160,13 +169,17 @@
     align-self: self-start;
   }
 
+  #file-tree ul {
+    padding-left: 10px;
+  }
+
   #file-tree.show-inspector {
     max-height: calc(100vh - min(var(--inspector-height), 50vh))
   }
 
   #diff-content-wrapper {
     box-sizing: border-box;
-    padding: 12px;
+    padding: 12px 0 100px 0;
     display: block;
   }
 

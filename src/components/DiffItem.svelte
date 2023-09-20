@@ -38,26 +38,38 @@
   });
 </script>
 
+{#if item.sub}
+<h2 class="diff-title diff-subpatcher-title" id={item.id} bind:this={heading}>
+  <button on:click={toggleSVG}>{#if showSVG}^{:else}v{/if}</button>
+  {item.name}
+  {#if item.same} (same){/if}
+</h2>
+{:else}
 <h1 class="diff-title" id={item.id} bind:this={heading}>
   <button on:click={toggleSVG}>{#if showSVG}^{:else}v{/if}</button>
   {item.name}
+  {#if item.same} (same){/if}
 </h1>
+{/if}
 
-{#if showSVG}
-  <div class="diff-wrapper" bind:this={div}>
+<div class="diff-wrapper" class:diff-subpatcher={item.sub} bind:this={div}>
+  {#if showSVG}
     <div class="patcher-wrapper">
       <Patcher type="left" patcher={item.leftPatcher || new MaxPat("{}")} />
       <Patcher type="right" patcher={item.rightPatcher || new MaxPat("{}")} />
     </div>
-  </div>
-{/if}
+  {/if}
+  {#each item.subPatchers || [] as sub}
+    <svelte:self item={sub} />
+  {/each}
+</div>
 
 <style>
   .diff-wrapper {
     box-sizing: border-box;
-    overflow-x: auto;
     width: 100%;
     display: block;
+    padding-left: 30px;
   }
 
   .diff-title {
@@ -68,9 +80,15 @@
     text-align: left;
     margin: 4px 0;
     font-size: 1rem;
-    background: #888;
+    background: #444;
     color: #fff;
     z-index: 10;
+  }
+
+  .diff-title.diff-subpatcher-title {
+    font-size: 0.8rem;
+    background: #888;
+    top: 30px;
   }
 
   .patcher-wrapper {
@@ -78,6 +96,7 @@
     position: relative;
     background: #f0f0f0;
     width: fit-content;
-    height: fit-content;
+    max-width: 100%;
+    overflow-x: auto;
   }
 </style>

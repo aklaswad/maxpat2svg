@@ -1,7 +1,7 @@
 <script lang="ts">
   import './style.css'
   import DiffView from './components/DiffView.svelte'
-  import { diffFiles, diffItems, opacityBalance } from './store'
+  import { diffItems, opacityBalance } from './store'
   import { fetchFromGitHub, type GitHubURLType, type DiffItem } from "./github"
   import { combineArray, deepEqual } from './util'
   import MaxPat from './maxpat2svg';
@@ -13,10 +13,9 @@
       f.leftPatcher = new MaxPat(JSON.parse(f.left || '{}'), f.name, `file-${idx}`)
       f.rightPatcher = new MaxPat(JSON.parse(f.right || '{}'), f.name, `file-${idx}`)
     })
-    // Extract sub patchers as pseudo files
-    const pseudoFiles: DiffItem[] = files.reduce( (acc: DiffItem[], cur: DiffItem) => {
-      const leftSubs = cur.leftPatcher ? cur.leftPatcher.subPatchers() : []
-      const rightSubs = cur.rightPatcher ? cur.rightPatcher.subPatchers() : []
+    files.forEach( file => {
+      const leftSubs = file.leftPatcher ? file.leftPatcher.subPatchers() : []
+      const rightSubs = file.rightPatcher ? file.rightPatcher.subPatchers() : []
       const subs = combineArray(
         p => p.id,
         (l,r) => ({
@@ -24,19 +23,19 @@
           sub: true,
           name: l ? l.name : r ? r.name : 'unknown',
           leftPatcher: l,
-          rightPatcher: r
+          rightPatcher: r,
+          same: deepEqual(l,r)
         }),
         leftSubs, rightSubs
       )
-      return [ ...acc, cur, ...subs]
-    }, [])
-    pseudoFiles.forEach( (o) => {
+      file.subPatchers = subs
+    })
+    files.forEach( (o) => {
       o.same = deepEqual(o.leftPatcher?.patcher, o.rightPatcher?.patcher)
       o.leftPatcher && o.rightPatcher && o.leftPatcher.gatherViewBoxWith(o.rightPatcher )
-      console.log(o.id)
     })
 
-    $diffItems = Object.fromEntries( pseudoFiles.map( f => [f.id, f]) )
+    $diffItems = Object.fromEntries( files.map( f => [f.id, f]) )
   }
 
   async function loadFromGitHub(owner: string, repo: string, type: GitHubURLType, params: string[] ): Promise<void> {

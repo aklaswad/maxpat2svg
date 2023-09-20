@@ -19,6 +19,7 @@ export type DiffItem = {
   right?: string
   leftPatcher?: MaxPat
   rightPatcher?: MaxPat
+  subPatchers?: DiffItem[]
   select?: () => void
 }
 
