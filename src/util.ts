@@ -61,18 +61,29 @@ export function deepEqual(left: any, right: any) {
  * @param root
  * @returns
  */
-export function makeTree ( items: {path: string[], item: any}[] ) {
+export function makeTree ( items: {path: string[], item: any }[] ) {
   const intermediateTree: any = {}
   for ( const item of items ) {
     let node = intermediateTree
-    const nodeLen = item.path.length - 1
-    for ( let i=0; i < nodeLen; i++ ) {
+    const pathLen = item.path.length - 1
+    for ( let i=0; i < pathLen; i++ ) {
+      let child
       if (!node[item.path[i]]) {
-        node[item.path[i]] = {}
+        child = {}
+        node[item.path[i]] = { item: null, nodes:child}
       }
-      node = node[item.path[i]]
+      else {
+        child = node[item.path[i]]['nodes']
+      }
+      node = child
     }
-    node[item.path[nodeLen]] = { isLeaf: true, item: item.item }
+    const leaf = node[item.path[pathLen]]
+    if ( leaf ) {
+      leaf['item'] = item.item
+    }
+    else {
+      node[item.path[pathLen]] = { item: item.item, nodes: {}}
+    }
   }
   const sorted = sortSubTree(intermediateTree)
   return sorted
@@ -82,12 +93,13 @@ function sortSubTree(root: {[key: string]: any}) {
   const ret: any = []
   for ( const key of Object.keys(root).sort() ) {
     const node = root[key]
-    if ( node.isLeaf ) {
-      ret.push({ path: key, item: node.item})
+    const thisNode: any = { path: key }
+    if ( node.item ) thisNode.item = node.item
+    const children = sortSubTree(node.nodes)
+    if ( children && Array.isArray(children) && children.length ) {
+      thisNode.nodes = children
     }
-    else {
-      ret.push({ path: key, nodes: sortSubTree(node)})
-    }
+    ret.push(thisNode)
   }
   return ret
 }

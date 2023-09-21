@@ -3,15 +3,16 @@
   import DiffView from './components/DiffView.svelte'
   import { diffItems, opacityBalance } from './store'
   import { fetchFromGitHub, type GitHubURLType, type DiffItem } from "./github"
-  import { combineArray, deepEqual } from './util'
+  import { combineArray, deepEqual, makeTree } from './util'
   import MaxPat from './maxpat2svg';
 
   function setUpFileList (files: DiffItem[]) {
     // Extract sub patchers
     files.forEach( (f, idx) => {
+      f.isFile = true
       f.id = `file-${idx}`
-      f.leftPatcher = new MaxPat(JSON.parse(f.left || '{}'), f.name, `file-${idx}`)
-      f.rightPatcher = new MaxPat(JSON.parse(f.right || '{}'), f.name, `file-${idx}`)
+      f.leftPatcher = new MaxPat(JSON.parse(f.left || '{}'), null, f.name, `file-${idx}`)
+      f.rightPatcher = new MaxPat(JSON.parse(f.right || '{}'), null, f.name, `file-${idx}`)
     })
     files.forEach( file => {
       const leftSubs = file.leftPatcher ? file.leftPatcher.subPatchers() : []
@@ -22,6 +23,7 @@
           id: l ? l.id : r ? r.id : 'unknown',
           sub: true,
           name: l ? l.name : r ? r.name : 'unknown',
+          path: l ? l.path : r ? r.path : [],
           leftPatcher: l,
           rightPatcher: r,
           same: deepEqual(l,r)
@@ -29,6 +31,9 @@
         leftSubs, rightSubs
       )
       file.subPatchers = subs
+      const subtree = makeTree( subs.map( s => ({ path: s.path, item: s }) ) )
+      console.dir({subtree}, {depth: null})
+      file.subPatcherTree = Object.keys(subtree).length ? subtree[Object.keys(subtree)[0]].nodes : []
     })
     files.forEach( (o) => {
       o.path = o.name?.split(/[\/\\]/g)

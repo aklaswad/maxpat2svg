@@ -25,4 +25,26 @@ describe('makeTree', () => {
       }
     ])
   })
+
+  it('allows to be leaf and children in same path', () => {
+    const args = [
+      { path: [ 'foo', 'bar' ], item: 1 },
+      { path: [ 'foo', 'bar', 'baz' ], item: 2 },
+    ]
+    const res = makeTree(args)
+    expect(res).to.deep.equal([
+      {
+        path: 'foo',
+        nodes: [
+          {
+            path: 'bar',
+            item: 1,
+            nodes: [
+              { path: 'baz', item: 2 }
+            ]
+          }
+        ]
+      }
+    ])
+  })
 })

@@ -398,6 +398,7 @@ class Box {
 
 class MaxPat {
   id: string
+  path: string[]
   name: string
   boxes: { [id: string]: Box }
   lines: PatchLineNode[]
@@ -410,8 +411,9 @@ class MaxPat {
   default_fontsize: number
   default_fontname: string
 
-  constructor(patcher: unknown, name: string = '/', id: string = '/') {
+  constructor(patcher: unknown, parent: MaxPat | null = null, name: string = '/', id: string = '/') {
     this.id = id
+    this.path = parent ? [...parent.path, id] : [id]
     this.name = name
     this.boxes = {}
     this.children = []
@@ -443,7 +445,7 @@ class MaxPat {
       if (box.x + box.width > maxX) maxX = box.x + box.width
       if (box.y + box.height > maxY) maxY = box.y + box.height
       if (boxData.box?.patcher) {
-        const child = new MaxPat(boxData.box, `${box.text || box.id}`, `${box.id}`)
+        const child = new MaxPat(boxData.box, this, `${box.text || box.id}`, `${box.id}`)
         // cspell:ignore atcher
         this.children.push(child)
       }

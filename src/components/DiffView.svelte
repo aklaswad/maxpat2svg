@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import { diffItems, diffItemTree, showInspector, opacityBalance } from "../store";
-  import DiffItem from './DiffItem.svelte'
+  import DiffViewList from './DiffViewList.svelte'
   import Inspector from './Inspector.svelte'
   import FileTreeList from './FileTreeList.svelte'
   import { type SelectEvent, makeTree } from '../util'
@@ -38,12 +38,14 @@
   }
 
   function handleFileNameClick (evt: MouseEvent) {
+    /*
     const target: HTMLElement = evt.target as HTMLElement
     if ( !target ) return
     const id = target.dataset.filename || ''
     const item = $diffItems[id]
     if ( !item || !item.select ) return
     item.select()
+    */
   }
 
   onMount( () => {
@@ -70,9 +72,7 @@
     </ul>
   {/if}
   <div id="diff-content-wrapper" bind:this={contents}>
-    {#each $diffItems as item}
-      <DiffItem item={item} />
-    {/each}
+    <DiffViewList nodes={$diffItemTree} />
   </div>
 </div>
 <div id="controls">

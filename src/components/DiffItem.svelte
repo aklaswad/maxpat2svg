@@ -52,25 +52,14 @@
 </h1>
 {/if}
 
-<div class="diff-wrapper" class:diff-subpatcher={item.sub} bind:this={div}>
   {#if showSVG}
     <div class="patcher-wrapper">
       <Patcher type="left" patcher={item.leftPatcher || new MaxPat("{}")} />
       <Patcher type="right" patcher={item.rightPatcher || new MaxPat("{}")} />
     </div>
   {/if}
-  {#each item.subPatchers || [] as sub}
-    <svelte:self item={sub} />
-  {/each}
-</div>
 
 <style>
-  .diff-wrapper {
-    box-sizing: border-box;
-    width: 100%;
-    display: block;
-    padding-left: 30px;
-  }
 
   .diff-title {
     position: sticky;

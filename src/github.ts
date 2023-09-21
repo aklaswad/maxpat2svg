@@ -12,6 +12,7 @@ const fetchOptionJSON: RequestInit = {
 type GHResponseFileNode = { filename: string, status: string }
 export type DiffItem = {
   id?: string
+  isFile?: boolean
   path?: string[]
   sub?: boolean
   name?: string
@@ -21,6 +22,7 @@ export type DiffItem = {
   leftPatcher?: MaxPat
   rightPatcher?: MaxPat
   subPatchers?: DiffItem[]
+  subPatcherTree?: any
   select?: () => void
 }
 
