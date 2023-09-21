@@ -1,10 +1,11 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import { diffItems, diffItemTree, showInspector, opacityBalance } from "../store";
+  import { diffItemTree, showInspector, opacityBalance } from "../store";
   import DiffViewList from './DiffViewList.svelte'
-  import Inspector from './Inspector.svelte'
-  import FileTreeList from './FileTreeList.svelte'
-  import { type SelectEvent, makeTree } from '../util'
+  import TheInspector from './TheInspector.svelte'
+  import TheFileTree from './TheFileTree.svelte'
+  import { type SelectEvent } from "../util";
+
   let contents: Element
   let showFileTree = true
 
@@ -57,7 +58,7 @@
 <div id="content-wrapper" class:show-tree="{showFileTree}" class:show-inspector="{$showInspector}">
   {#if showFileTree}
     <ul id="file-tree" class:show-inspector={$showInspector}>
-      <FileTreeList nodes={$diffItemTree} />
+      <TheFileTree nodes={$diffItemTree} />
     </ul>
   {/if}
   <div id="diff-content-wrapper" bind:this={contents}>
@@ -85,7 +86,7 @@
   </div>
   {#if $showInspector}
   <div id="inspector">
-    <Inspector />
+    <TheInspector />
   </div>
   {/if}
 </div>

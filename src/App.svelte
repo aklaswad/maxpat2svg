@@ -1,6 +1,6 @@
 <script lang="ts">
   import './style.css'
-  import DiffView from './components/DiffView.svelte'
+  import TheMainView from './components/TheMainView.svelte'
   import { diffItems, opacityBalance } from './store'
   import { fetchFromGitHub, type GitHubURLType, type DiffItem } from "./github"
   import { combineArray, deepEqual, makeTree } from './util'
@@ -15,7 +15,7 @@
       f.rightPatcher = new MaxPat(JSON.parse(f.right || '{}'), null, f.name, `file-${idx}`)
     })
     files.forEach( file => {
-      const leftSubs = file.leftPatcher ? file.leftPatcher.subPatchers() : []
+      const leftSubs  = file.leftPatcher ? file.leftPatcher.subPatchers() : []
       const rightSubs = file.rightPatcher ? file.rightPatcher.subPatchers() : []
       const subs = combineArray(
         p => p.id,
@@ -173,7 +173,7 @@
     ...loading
   </div>
 {:then}
-  <DiffView />
+  <TheMainView />
 {:catch error}
   <div class="load-error">
     Loading error: {loadError}
