@@ -1,6 +1,7 @@
 import { writable, type Writable, derived } from 'svelte/store';
 import { MaxPat } from './maxpat2svg'
 import { type DiffItem } from './github'
+import { makeTree } from './util'
 
 export type MaxPatFile = {
   filename: string
@@ -14,8 +15,12 @@ export type DiffFileItem = {
 }
 
 export const showInspector: Writable<boolean> = writable(false)
-export const diffFiles: Writable<DiffFileItem[]> = writable([])
-export const diffItems: Writable<{[id: string]: DiffItem}> = writable({})
+
+export const diffItems: Writable<DiffItem[]> = writable([])
+export const diffItemTree = derived(diffItems, ($diffItems) => {
+  return makeTree($diffItems.map( i => ({ path: i.path || [''], item: i })))
+})
+
 export const opacityBalance: Writable<number> = writable(500)
 export const diffOpacity = derived(opacityBalance, ($opacityBalance) => {
   const v = $opacityBalance / 1000

@@ -56,4 +56,40 @@ export function deepEqual(left: any, right: any) {
   return deepEqual(Object.entries(left).sort(), Object.entries(right).sort())
 }
 
+/**
+ * see (@link ../test/util.ts) for how this transform the tree
+ * @param root
+ * @returns
+ */
+export function makeTree ( items: {path: string[], item: any}[] ) {
+  const intermediateTree: any = {}
+  for ( const item of items ) {
+    let node = intermediateTree
+    const nodeLen = item.path.length - 1
+    for ( let i=0; i < nodeLen; i++ ) {
+      if (!node[item.path[i]]) {
+        node[item.path[i]] = {}
+      }
+      node = node[item.path[i]]
+    }
+    node[item.path[nodeLen]] = { isLeaf: true, item: item.item }
+  }
+  const sorted = sortSubTree(intermediateTree)
+  return sorted
+}
+
+function sortSubTree(root: {[key: string]: any}) {
+  const ret: any = []
+  for ( const key of Object.keys(root).sort() ) {
+    const node = root[key]
+    if ( node.isLeaf ) {
+      ret.push({ path: key, item: node.item})
+    }
+    else {
+      ret.push({ path: key, nodes: sortSubTree(node)})
+    }
+  }
+  return ret
+}
+
 export type SelectEvent = Event & { targetLeft?: Element, targetRight?: Element }

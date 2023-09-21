@@ -443,7 +443,7 @@ class MaxPat {
       if (box.x + box.width > maxX) maxX = box.x + box.width
       if (box.y + box.height > maxY) maxY = box.y + box.height
       if (boxData.box?.patcher) {
-        const child = new MaxPat(boxData.box, `${this.name}::${box.text || box.id}`, `${this.id}::${box.id}`)
+        const child = new MaxPat(boxData.box, `${box.text || box.id}`, `${box.id}`)
         // cspell:ignore atcher
         this.children.push(child)
       }
@@ -471,10 +471,10 @@ class MaxPat {
     }
   }
 
-  subPatchers(parentName: string = ''): MaxPat[] {
+  subPatchers(parentName: string = '', parentId: string = ''): MaxPat[] {
     return [
       ...this.children,
-      ...this.children.reduce((acc: MaxPat[], cur: MaxPat) => [...acc, ...cur.subPatchers(parentName + '/' + cur.name)], [])
+      ...this.children.reduce((acc: MaxPat[], cur: MaxPat) => [...acc, ...cur.subPatchers(parentName + '/' + cur.name, parentId + '/' + cur.id)], [])
     ]
   }
 

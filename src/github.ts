@@ -12,6 +12,7 @@ const fetchOptionJSON: RequestInit = {
 type GHResponseFileNode = { filename: string, status: string }
 export type DiffItem = {
   id?: string
+  path?: string[]
   sub?: boolean
   name?: string
   same?: boolean

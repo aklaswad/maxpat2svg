@@ -31,17 +31,17 @@
       file.subPatchers = subs
     })
     files.forEach( (o) => {
+      o.path = o.name?.split(/[\/\\]/g)
       o.same = deepEqual(o.leftPatcher?.patcher, o.rightPatcher?.patcher)
       o.leftPatcher && o.rightPatcher && o.leftPatcher.gatherViewBoxWith(o.rightPatcher )
     })
 
-    $diffItems = Object.fromEntries( files.map( f => [f.id, f]) )
+    $diffItems = files
   }
 
   async function loadFromGitHub(owner: string, repo: string, type: GitHubURLType, params: string[] ): Promise<void> {
     const files = await fetchFromGitHub(owner, repo, type, params)
     if (!files) {
-      showZeroState()
       return
     }
     setUpFileList(files)

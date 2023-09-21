@@ -1,9 +1,10 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import { diffItems, showInspector, opacityBalance } from "../store";
+  import { diffItems, diffItemTree, showInspector, opacityBalance } from "../store";
   import DiffItem from './DiffItem.svelte'
   import Inspector from './Inspector.svelte'
-  import { type SelectEvent } from '../util'
+  import FileTreeList from './FileTreeList.svelte'
+  import { type SelectEvent, makeTree } from '../util'
   let contents: Element
   let showFileTree = true
 
@@ -64,25 +65,12 @@
 
 <div id="content-wrapper" class:show-tree="{showFileTree}" class:show-inspector="{$showInspector}">
   {#if showFileTree}
-  <div id="file-tree" class:show-inspector="{$showInspector}">
-    <ul>
-      {#each Object.values($diffItems) as item}
-        <li>
-          <a href="#{item.id}" data-filename={item.id} on:click|preventDefault={handleFileNameClick}>{item.name}</a>
-          {#if item.subPatchers && item.subPatchers.length}
-          <ul>
-            {#each item.subPatchers as sub}
-              <li><a href="#{sub.id}" data-filename={sub.id} on:click|preventDefault={handleFileNameClick}>{sub.name}</a></li>
-            {/each}
-          </ul>
-          {/if}
-        </li>
-      {/each}
+    <ul id="file-tree" class:show-inspector={$showInspector}>
+      <FileTreeList nodes={$diffItemTree} />
     </ul>
-  </div>
   {/if}
   <div id="diff-content-wrapper" bind:this={contents}>
-    {#each Object.values($diffItems) as item}
+    {#each $diffItems as item}
       <DiffItem item={item} />
     {/each}
   </div>
@@ -167,10 +155,6 @@
     padding: 4px;
     box-sizing: border-box;
     align-self: self-start;
-  }
-
-  #file-tree ul {
-    padding-left: 10px;
   }
 
   #file-tree.show-inspector {
