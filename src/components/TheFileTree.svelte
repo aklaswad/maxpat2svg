@@ -11,11 +11,6 @@
     {#if !node.item}
       📂{node.item?.name || node.path}
     {:else}
-      {#if node.item.isFile}
-        📄
-      {:else}
-        🔖
-      {/if}
       <FileTreeItem item={node.item} />
     {/if}
     {#if node.item && node.item.subPatcherTree}

@@ -8,14 +8,28 @@
   }
 </script>
 
+
 <a
   href="#{item.path?.join('/')}"
   on:click|preventDefault={handleFileNameClick}
->{item.name}</a>
+>
+{#if item.isFile}
+📄
+{:else}
+🔖
+{/if}
+{item.name}</a>
 
 <style>
 a {
+  display: block;
   font-weight: normal;
   text-decoration: none;
+  width: 100%;
+  height: 100%;
+}
+
+a:hover, a:active {
+  background: #ddd;
 }
 </style>
