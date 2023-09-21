@@ -1,5 +1,5 @@
 <script lang="ts">
-  import DiffItem from './DiffItem.svelte'
+  import DiffViewListItem from './DiffViewListItem.svelte'
 
   type FileInTree = { path: string[]; item?: any; nodes?: FileInTree[] };
   export let nodes: FileInTree[];
@@ -9,7 +9,7 @@
 {#each nodes || [] as node}
   <div class="diff-wrapper">
   {#if node.item}
-    <DiffItem item={node.item} />
+    <DiffViewListItem item={node.item} />
   {/if}
   {#if node.item && node.item.subPatcherTree}
     <svelte:self nodes={node.item.subPatcherTree} />

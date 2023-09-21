@@ -1,5 +1,5 @@
 <script lang="ts">
-  import TreeItem from './TreeItem.svelte'
+  import FileTreeItem from './FileTreeItem.svelte'
 
   type FileInTree =  { path: string[], item?: any, nodes?: FileInTree[] }
   export let nodes: FileInTree[]
@@ -8,10 +8,16 @@
 
 {#each nodes || [] as node}
   <li>
-    {#if !node.item}📂{node.item?.name || node.path}{:else}
-      {#if node.item.isFile}📄{:else}🔖{/if}
-        <TreeItem item={node.item} />
+    {#if !node.item}
+      📂{node.item?.name || node.path}
+    {:else}
+      {#if node.item.isFile}
+        📄
+      {:else}
+        🔖
       {/if}
+      <FileTreeItem item={node.item} />
+    {/if}
     {#if node.item && node.item.subPatcherTree}
       <ul>
         <svelte:self nodes={node.item.subPatcherTree} />
