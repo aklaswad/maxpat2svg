@@ -10,6 +10,7 @@
   let showSVG = !item.same;
   let div: Element
   let heading: Element
+  let headingSub: Element
 
   function toggleSVG() {
     showSVG = !showSVG;
@@ -24,9 +25,9 @@
       div.addEventListener("box-select", handleSelectEvent)
     }
     item.select = async () => {
-      showSVG = true
-      await tick;
-      (div || heading).scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' })
+      showSVG = true;
+      (heading || headingSub)
+        .scrollIntoView({ behavior: 'smooth', block: 'start', inline: 'center' })
     }
     return () => {
       delete item.select
@@ -39,7 +40,7 @@
 </script>
 
 {#if item.sub}
-<h2 class="diff-title diff-subpatcher-title" id={item.path?.join('/')} bind:this={heading}>
+<h2 class="diff-title diff-subpatcher-title" id={item.path?.join('/')} bind:this={headingSub}>
   <button on:click={toggleSVG}>{#if showSVG}^{:else}v{/if}</button>
   {item.name}
   {#if item.same} (same){/if}
@@ -52,17 +53,16 @@
 </h1>
 {/if}
 
-  {#if showSVG}
-    <div class="patcher-wrapper">
-      <Patcher type="left" patcher={item.leftPatcher || new MaxPat("{}")} />
-      <Patcher type="right" patcher={item.rightPatcher || new MaxPat("{}")} />
-    </div>
-  {/if}
+{#if showSVG}
+  <div class="patcher-wrapper" bind:this={div}>
+    <Patcher type="left" patcher={item.leftPatcher || new MaxPat("{}")} />
+    <Patcher type="right" patcher={item.rightPatcher || new MaxPat("{}")} />
+  </div>
+{/if}
 
 <style>
 
   .diff-title {
-    position: sticky;
     top: 0;
     box-sizing: border-box;
     width: 100%;
@@ -73,6 +73,7 @@
     background: #444;
     color: #fff;
     z-index: 10;
+    scroll-margin-top: 30px;
   }
 
   h1.diff-title {

@@ -10,7 +10,7 @@
 
 <a
   href="#{item.path?.join('/')}"
-  on:click={handleFileNameClick}
+  on:click|preventDefault={handleFileNameClick}
 >{item.name}</a>
 
 <style>
