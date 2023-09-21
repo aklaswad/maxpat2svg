@@ -1,9 +1,8 @@
 <script lang="ts">
-  import { type DiffItem } from '../github'
+  import TreeItem from './TreeItem.svelte'
 
   type FileInTree =  { path: string[], item?: any, nodes?: FileInTree[] }
   export let nodes: FileInTree[]
-//  export let tryExtend: boolean = true
 
 </script>
 
@@ -11,7 +10,7 @@
   <li>
     {#if !node.item}📂{node.item?.name || node.path}{:else}
       {#if node.item.isFile}📄{:else}🔖{/if}
-        <a href="#{node.item ? node.item.path.join('/') : node.path }">{node.item?.name || node.path}</a>
+        <TreeItem item={node.item} />
       {/if}
     {#if node.item && node.item.subPatcherTree}
       <ul>
@@ -30,10 +29,4 @@
   ul {
     padding-left: 10px;
   }
-
-  ul a {
-    font-weight: normal;
-    text-decoration: none;
-  }
-
 </style>

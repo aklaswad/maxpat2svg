@@ -37,17 +37,6 @@
     parent.dispatchEvent(selectEvent)
   }
 
-  function handleFileNameClick (evt: MouseEvent) {
-    /*
-    const target: HTMLElement = evt.target as HTMLElement
-    if ( !target ) return
-    const id = target.dataset.filename || ''
-    const item = $diffItems[id]
-    if ( !item || !item.select ) return
-    item.select()
-    */
-  }
-
   onMount( () => {
     contents.addEventListener('click', function (evt) {
       if ( evt instanceof MouseEvent ) {

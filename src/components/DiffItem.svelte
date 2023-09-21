@@ -39,13 +39,13 @@
 </script>
 
 {#if item.sub}
-<h2 class="diff-title diff-subpatcher-title" id={item.id} bind:this={heading}>
+<h2 class="diff-title diff-subpatcher-title" id={item.path?.join('/')} bind:this={heading}>
   <button on:click={toggleSVG}>{#if showSVG}^{:else}v{/if}</button>
   {item.name}
   {#if item.same} (same){/if}
 </h2>
 {:else}
-<h1 class="diff-title" id={item.id} bind:this={heading}>
+<h1 class="diff-title" id={item.path?.join('/')} bind:this={heading}>
   <button on:click={toggleSVG}>{#if showSVG}^{:else}v{/if}</button>
   {item.name}
   {#if item.same} (same){/if}
@@ -66,6 +66,7 @@
     top: 0;
     box-sizing: border-box;
     width: 100%;
+    height: 24px;
     text-align: left;
     margin: 4px 0;
     font-size: 1rem;
@@ -74,10 +75,18 @@
     z-index: 10;
   }
 
+  h1.diff-title {
+    z-index: 13;
+  }
+
+  h2.diff-title {
+    z-index: 12;
+  }
+
   .diff-title.diff-subpatcher-title {
     font-size: 0.8rem;
     background: #888;
-    top: 30px;
+    top: 24px;
   }
 
   .patcher-wrapper {
