@@ -2,21 +2,26 @@
   import { MaxPat } from '../maxpat2svg'
   import { onMount } from "svelte";
   import { diffOpacity } from '../store'
-  export let patcher: MaxPat
+  export let patcher: MaxPat | null | undefined
   export let type: 'left' | 'right'
 
   let div: Element
   onMount( () => {
-    const svg = patcher.svg()
-    div.appendChild(patcher.svg())
+    if ( patcher ) {
+      const svg = patcher.svg()
+      div.appendChild(patcher.svg())
+    }
   })
 
 </script>
 
+{#if patcher}
 <div
   class="patcher patcher-{type}"
   bind:this={div}
-  style:opacity={$diffOpacity[type]} />
+  style:opacity={$diffOpacity[type]}
+/>
+{/if}
 
 <style>
   .patcher {

@@ -7,13 +7,18 @@
   import MaxPat from './maxpat2svg';
 
   function setUpFileList (files: DiffItem[]) {
-    // Extract sub patchers
+    const flatDict = {}
+
     files.forEach( (f, idx) => {
       f.isFile = true
       f.id = `file-${idx}`
-      f.leftPatcher = new MaxPat(JSON.parse(f.left || '{}'), null, f.name, `file-${idx}`)
-      f.rightPatcher = new MaxPat(JSON.parse(f.right || '{}'), null, f.name, `file-${idx}`)
+      f.leftPatcher = f.left ? new MaxPat(JSON.parse(f.left), null, f.name, `file-${idx}`) : null
+      f.rightPatcher = f.right ? new MaxPat(JSON.parse(f.right), null, f.name, `file-${idx}`) : null
+      //f.fullPath =
     })
+
+    // Extract sub patchers
+
     files.forEach( file => {
       const leftSubs  = file.leftPatcher ? file.leftPatcher.subPatchers() : []
       const rightSubs = file.rightPatcher ? file.rightPatcher.subPatchers() : []

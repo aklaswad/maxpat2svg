@@ -8,7 +8,6 @@
   }
 </script>
 
-
 <a
   href="#{item.path?.join('/')}"
   on:click|preventDefault={handleFileNameClick}

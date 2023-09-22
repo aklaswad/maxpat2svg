@@ -16,9 +16,9 @@ export type DiffFileItem = {
 
 export const showInspector: Writable<boolean> = writable(false)
 
-export const diffItems: Writable<DiffItem[]> = writable([])
+export const diffItems: Writable<{[key: string]: DiffItem[]}> = writable([])
 export const diffItemTree = derived(diffItems, ($diffItems) => {
-  return makeTree($diffItems.map( i => ({ path: i.path || [''], item: i })))
+  return makeTree(Object.values($diffItems).map( i => ({ path: i.path || [''], item: i })))
 })
 
 export const opacityBalance: Writable<number> = writable(500)

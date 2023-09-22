@@ -17,10 +17,10 @@ export type DiffItem = {
   sub?: boolean
   name?: string
   same?: boolean
-  left?: string
-  right?: string
-  leftPatcher?: MaxPat
-  rightPatcher?: MaxPat
+  left?: string | null
+  right?: string | null
+  leftPatcher?: MaxPat | null
+  rightPatcher?: MaxPat | null
   subPatchers?: DiffItem[]
   subPatcherTree?: any
   select?: () => void
@@ -40,16 +40,16 @@ async function resolveFiles(owner: string, repo: string, leftRef: string, rightR
   for (const idx in fileList) {
     const file = fileList[idx]
     if (! /\.max(pat|help)/.test(file.filename)) {
-      files[idx]['left'] = '{}'
-      files[idx]['right'] = '{}'
+      files[idx]['left'] = null
+      files[idx]['right'] = null
     }
     else if (file.status === 'added') {
-      files[idx]['left'] = '{}'
+      files[idx]['left'] = null
       workers.push((async () => files[idx]['right'] = await fetchContent(owner, repo, file.filename, rightRef))())
     }
     else if (file.status === 'removed') {
       workers.push((async () => files[idx]['left'] = await fetchContent(owner, repo, file.filename, leftRef))())
-      files[idx]['right'] = '{}'
+      files[idx]['right'] = null
     }
     else {
       workers.push((async () => files[idx]['left'] = await fetchContent(owner, repo, file.filename, leftRef))())

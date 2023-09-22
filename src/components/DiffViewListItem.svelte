@@ -53,14 +53,15 @@
 </h1>
 {/if}
 
-{#if showSVG}
-  <div class="patcher-wrapper" bind:this={div}>
-    <Patcher type="left" patcher={item.leftPatcher || new MaxPat("{}")} />
-    <Patcher type="right" patcher={item.rightPatcher || new MaxPat("{}")} />
-  </div>
-{/if}
+<div class="patcher-wrapper" bind:this={div} class:hide={!showSVG}>
+  <Patcher type="left" patcher={item.leftPatcher} />
+  <Patcher type="right" patcher={item.rightPatcher} />
+</div>
 
 <style>
+  .hide {
+    display: none !important;
+  }
 
   .diff-title {
     top: 0;

@@ -42,12 +42,12 @@ async function handleGitHubRequest(args) {
 async function getFileContentForDiff(left, right) {
   // XXX: too nervous?
   // Deny if the app seems to be reading files out of git diff context
-  if ( ! (/git-difftool/.test(left)  && /left/.test(left))   ) throw 'Not allowed'
-  if ( ! (/git-difftool/.test(right) && /right/.test(right)) ) throw 'Not allowed'
-
+  if ( ! (
+       (/git-difftool/.test(left)  && /left/.test(left))
+    || (/git-difftool/.test(right) && /right/.test(right)) ) ) throw 'Not allowed'
   const contents = await Promise.all([
-    left  ? fs.readFile(left,  'utf-8') : '{}',
-    right ? fs.readFile(right, 'utf-8') : '{}'
+    left  ? fs.readFile(left,  'utf-8') : null,
+    right ? fs.readFile(right, 'utf-8') : null
   ])
   return { left:  contents[0], right: contents[1] }
 }
@@ -77,10 +77,6 @@ async function handleLocalDiff(args) {
           )
         } )(fn)
       )
-    }
-    else {
-      files[fn].left = '{}'
-      files[fn].right = '{}'
     }
   }
   await Promise.all(promises)

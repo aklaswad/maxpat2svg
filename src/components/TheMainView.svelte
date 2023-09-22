@@ -20,7 +20,7 @@
   function handleDiffViewClick(evt: MouseEvent) {
     const possibles = document.elementsFromPoint(evt.clientX, evt.clientY)
     const parentCandidates = possibles
-      .filter(e => e.matches('.diff-wrapper'))
+      .filter(e => e.matches('.patcher-wrapper'))
     const parent = parentCandidates.length ? parentCandidates[0] : undefined
     if ( !parent ) return
     const leftCandidates = possibles
