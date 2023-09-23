@@ -9,18 +9,20 @@ const fetchOptionJSON: RequestInit = {
   }
 }
 
+export type SideOfDiff = 'left' | 'right'
+export const SidesOfDiff: SideOfDiff[] = ['left', 'right']
+
 type GHResponseFileNode = { filename: string, status: string }
 export type DiffItem = {
   id?: string
   isFile?: boolean
   path?: string[]
+  fullPath?: string | null,
   sub?: boolean
   name?: string
   same?: boolean
-  left?: string | null
-  right?: string | null
-  leftPatcher?: MaxPat | null
-  rightPatcher?: MaxPat | null
+  rawContent?: { [side in SideOfDiff]?: string | null }
+  patchers: { [side in SideOfDiff]?: MaxPat | null }
   subPatchers?: DiffItem[]
   subPatcherTree?: any
   select?: () => void
@@ -35,25 +37,31 @@ async function fetchContent(owner: string, repo: string, path: string, ref: stri
 
 // TODO: Throttle
 async function resolveFiles(owner: string, repo: string, leftRef: string, rightRef: string, fileList: GHResponseFileNode[] ) {
-  const files = fileList.map(f => ({} as DiffItem))
+  const files: DiffItem[] = fileList.map(f => ({} as DiffItem))
   const workers = []
   for (const idx in fileList) {
     const file = fileList[idx]
+
     if (! /\.max(pat|help)/.test(file.filename)) {
-      files[idx]['left'] = null
-      files[idx]['right'] = null
+      files[idx].rawContent = { left: null, right: null }
     }
     else if (file.status === 'added') {
-      files[idx]['left'] = null
-      workers.push((async () => files[idx]['right'] = await fetchContent(owner, repo, file.filename, rightRef))())
+      workers.push((async () => files[idx].rawContent = {
+        left: null,
+        right: await fetchContent(owner, repo, file.filename, rightRef)
+      })())
     }
     else if (file.status === 'removed') {
-      workers.push((async () => files[idx]['left'] = await fetchContent(owner, repo, file.filename, leftRef))())
-      files[idx]['right'] = null
+      workers.push((async () => files[idx].rawContent = {
+        left: await fetchContent(owner, repo, file.filename, leftRef),
+        right: null
+      })())
     }
     else {
-      workers.push((async () => files[idx]['left'] = await fetchContent(owner, repo, file.filename, leftRef))())
-      workers.push((async () => files[idx]['right'] = await fetchContent(owner, repo, file.filename, rightRef))())
+      workers.push((async () => files[idx].rawContent = {
+        left: await fetchContent(owner, repo, file.filename, leftRef),
+        right: await fetchContent(owner, repo, file.filename, rightRef)
+      })())
     }
     files[idx]['name'] = file.filename
   }

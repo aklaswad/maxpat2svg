@@ -309,7 +309,7 @@ class Box {
     }
   }
 
-  svg(patcher: any) {
+  svg(patcher: MaxPat) {
     const g = document.createElementNS(SVG_NS, "g")
     const rect = document.createElementNS(SVG_NS, "rect")
     g.appendChild(rect);
@@ -317,7 +317,8 @@ class Box {
     rect.setAttribute("y", this.y.toString())
     rect.setAttribute("width", this.width.toString())
     rect.setAttribute("height", this.height.toString())
-    g.setAttribute("id", patcher.id + '-' + this.id)
+    g.setAttribute("id", patcher.id + '/' + this.id)
+    g.dataset.parentPath = patcher.fullPath()
     g.dataset.patcherId = patcher.id
     g.dataset.boxId = this.id
     rect.classList.add(this.class, 'box-rect')
@@ -480,12 +481,16 @@ class MaxPat {
     ]
   }
 
+  fullPath (separator: string = '/') {
+    return this.path.join(separator)
+  }
+
   gatherViewBoxWith(anotherPatcher: MaxPat) {
     const right = Math.max(this.x + this.width, anotherPatcher.x + anotherPatcher.width)
     const bottom = Math.max(this.y + this.height, anotherPatcher.y + anotherPatcher.height)
-    this.x = anotherPatcher.x = Math.min(this.x, anotherPatcher.x),
-      this.y = anotherPatcher.y = Math.min(this.y, anotherPatcher.y),
-      this.width = anotherPatcher.width = right - this.x
+    this.x = anotherPatcher.x = Math.min(this.x, anotherPatcher.x)
+    this.y = anotherPatcher.y = Math.min(this.y, anotherPatcher.y)
+    this.width = anotherPatcher.width = right - this.x
     this.height = anotherPatcher.height = bottom - this.y
   }
 

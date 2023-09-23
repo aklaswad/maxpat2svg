@@ -1,52 +1,59 @@
 <script lang="ts">
   import './style.css'
   import TheMainView from './components/TheMainView.svelte'
-  import { diffItems, opacityBalance } from './store'
-  import { fetchFromGitHub, type GitHubURLType, type DiffItem } from "./github"
+  import { diffItems, opacityBalance, diffItemIndex } from './store'
+  import { fetchFromGitHub, type GitHubURLType, type DiffItem, SidesOfDiff } from "./github"
   import { combineArray, deepEqual, makeTree } from './util'
   import MaxPat from './maxpat2svg';
 
   function setUpFileList (files: DiffItem[]) {
-    const flatDict = {}
+    const flatDict: {[id: string]: DiffItem} = {}
 
-    files.forEach( (f, idx) => {
-      f.isFile = true
-      f.id = `file-${idx}`
-      f.leftPatcher = f.left ? new MaxPat(JSON.parse(f.left), null, f.name, `file-${idx}`) : null
-      f.rightPatcher = f.right ? new MaxPat(JSON.parse(f.right), null, f.name, `file-${idx}`) : null
-      //f.fullPath =
-    })
+    for ( const idx in files ) {
+      const file = files[idx]
+      file.isFile = true
+      file.id = `file-${idx}`
+      file.rawContent ??= {}
+      file.patchers ??= {}
+      for ( const side of SidesOfDiff ) {
+        const raw = file.rawContent[side]
+        if ( !raw || raw == null ) continue
+        const json = JSON.parse(raw)
+        file.patchers[side] = new MaxPat(json, null, file.name, `file-${idx}`)
+      }
+      file.fullPath = file.patchers.left  ? file.patchers.left.fullPath()
+                 : file.patchers.right ? file.patchers.right.fullPath()
+                 :                  null
+      flatDict[file.fullPath || ''] = file
 
-    // Extract sub patchers
-
-    files.forEach( file => {
-      const leftSubs  = file.leftPatcher ? file.leftPatcher.subPatchers() : []
-      const rightSubs = file.rightPatcher ? file.rightPatcher.subPatchers() : []
-      const subs = combineArray(
+      // Extract sub patchers
+      const leftSubs  = file.patchers.left ? file.patchers.left.subPatchers() : []
+      const rightSubs = file.patchers.right ? file.patchers.right.subPatchers() : []
+      const subs: DiffItem[] = combineArray<MaxPat, DiffItem>(
         p => p.id,
         (l,r) => ({
           id: l ? l.id : r ? r.id : 'unknown',
           sub: true,
           name: l ? l.name : r ? r.name : 'unknown',
           path: l ? l.path : r ? r.path : [],
-          leftPatcher: l,
-          rightPatcher: r,
+          fullPath: l ? l.fullPath() : r ? r.fullPath() : null,
+          patchers: { left: l, right: r },
           same: deepEqual(l,r)
         }),
         leftSubs, rightSubs
       )
+      subs.forEach( file => flatDict[file.fullPath || ''] = file)
       file.subPatchers = subs
-      const subtree = makeTree( subs.map( s => ({ path: s.path, item: s }) ) )
-      console.dir({subtree}, {depth: null})
+      const subtree = makeTree( subs.map( s => ({ path: s.path || [], item: s }) ) )
       file.subPatcherTree = Object.keys(subtree).length ? subtree[Object.keys(subtree)[0]].nodes : []
-    })
-    files.forEach( (o) => {
-      o.path = o.name?.split(/[\/\\]/g)
-      o.same = deepEqual(o.leftPatcher?.patcher, o.rightPatcher?.patcher)
-      o.leftPatcher && o.rightPatcher && o.leftPatcher.gatherViewBoxWith(o.rightPatcher )
-    })
+
+      file.path = file.name?.split(/[\/\\]/g)
+      file.same = deepEqual(file.patchers.left?.patcher, file.patchers.right?.patcher)
+      file.patchers.left && file.patchers.right && file.patchers.left.gatherViewBoxWith(file.patchers.right )
+    }
 
     $diffItems = files
+    $diffItemIndex = flatDict
   }
 
   async function loadFromGitHub(owner: string, repo: string, type: GitHubURLType, params: string[] ): Promise<void> {

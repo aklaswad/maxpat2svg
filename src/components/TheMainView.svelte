@@ -32,8 +32,8 @@
 
     const selectEvent: SelectEvent
       = new CustomEvent('box-select', { bubbles: true, cancelable: true})
-    selectEvent.targetLeft = left || undefined
-    selectEvent.targetRight = right || undefined
+    if ( left && left instanceof SVGElement ) { selectEvent.targetLeft = left }
+    if ( right && right instanceof SVGElement ) { selectEvent.targetRight = right }
 
     parent.dispatchEvent(selectEvent)
   }

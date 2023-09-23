@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onMount, tick } from "svelte";
+  import { onMount } from "svelte";
   import { type DiffItem } from "../github";
   import { MaxPat } from "../maxpat2svg";
   import Patcher from "./Patcher.svelte";
@@ -54,8 +54,8 @@
 {/if}
 
 <div class="patcher-wrapper" bind:this={div} class:hide={!showSVG}>
-  <Patcher type="left" patcher={item.leftPatcher} />
-  <Patcher type="right" patcher={item.rightPatcher} />
+  <Patcher type="left" patcher={item.patchers.left} />
+  <Patcher type="right" patcher={item.patchers.right} />
 </div>
 
 <style>

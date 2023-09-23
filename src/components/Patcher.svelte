@@ -9,7 +9,7 @@
   onMount( () => {
     if ( patcher ) {
       const svg = patcher.svg()
-      div.appendChild(patcher.svg())
+      div.appendChild(svg)
     }
   })
 

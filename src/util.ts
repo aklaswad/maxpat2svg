@@ -104,4 +104,4 @@ function sortSubTree(root: {[key: string]: any}) {
   return ret
 }
 
-export type SelectEvent = Event & { targetLeft?: Element, targetRight?: Element }
+export type SelectEvent = Event & { targetLeft?: SVGElement, targetRight?: SVGElement }

@@ -16,10 +16,21 @@ export type DiffFileItem = {
 
 export const showInspector: Writable<boolean> = writable(false)
 
-export const diffItems: Writable<{[key: string]: DiffItem[]}> = writable([])
+
+/**
+ * Main file list in flat form.
+ */
+export const diffItems: Writable<DiffItem[]> = writable([])
+
+/**
+ * Directory tree style of file list. Not includes sub patcher tree.
+ */
 export const diffItemTree = derived(diffItems, ($diffItems) => {
   return makeTree(Object.values($diffItems).map( i => ({ path: i.path || [''], item: i })))
+//  return makeTree($diffItems.map( i => ({ path: i.path || [''], item: i })))
 })
+
+export const diffItemIndex: Writable<{[id: string]: DiffItem}> = writable({})
 
 export const opacityBalance: Writable<number> = writable(500)
 export const diffOpacity = derived(opacityBalance, ($opacityBalance) => {
