@@ -31,9 +31,11 @@
       if ( !target.dataset.boxId ) continue
       target.classList.add('selected')
       const connections = target.dataset.connections
-      div.querySelectorAll(connections).forEach( el => {
-        el.classList.add('selected-connected')
-      })
+      if ( connections ) {
+        div.querySelectorAll(connections).forEach( el => {
+          el.classList.add('selected-connected')
+        })
+      }
       const maxpat = $diffItemIndex[target.dataset.parentPath].patchers[side]
       if ( maxpat ) {
         const box = maxpat.boxes[target.dataset.boxId]
