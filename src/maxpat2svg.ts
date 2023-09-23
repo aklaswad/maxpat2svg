@@ -590,5 +590,6 @@ class MaxPat {
   }
 }
 
+export { Box as Box }
 export { MaxPat as MaxPat }
 export { MaxPat as default }

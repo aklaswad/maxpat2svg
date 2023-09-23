@@ -1,9 +1,10 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import { type DiffItem } from "../github";
+  import { type DiffItem, SidesOfDiff } from "../github";
   import { MaxPat } from "../maxpat2svg";
   import Patcher from "./Patcher.svelte";
   import { type SelectEvent } from '../util'
+  import { selecting, selected, diffItemIndex, showInspector } from '../store'
 
   export let item: DiffItem;
 
@@ -16,8 +17,27 @@
     showSVG = !showSVG;
   }
 
-  async function handleSelectEvent (evt: SelectEvent) {
+  async function handleSelectEvent (evt: Event) {
+    if ( !(evt instanceof CustomEvent) ) return
+    if ( !evt.detail.left && !evt.detail.right ) {
+      $selecting = false
+      $selected = { left: undefined, right: undefined }
+      return
+    }
     showSVG = true
+    $showInspector = true
+    $selecting = true
+    for ( const side of SidesOfDiff ) {
+      const target = evt.detail[side]
+      console.log(target.dataset.parentPath, target.dataset.boxId)
+      if ( !target.dataset.parentPath ) return
+      if ( !target.dataset.boxId ) return
+      const maxpat = $diffItemIndex[target.dataset.parentPath].patchers[side]
+      if ( maxpat ) {
+        const box = maxpat.boxes[target.dataset.boxId]
+        $selected[side] = box
+      }
+    }
   }
 
   onMount( () => {

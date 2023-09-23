@@ -5,6 +5,7 @@
   import TheInspector from './TheInspector.svelte'
   import TheFileTree from './TheFileTree.svelte'
   import { type SelectEvent } from "../util";
+    import type { SideOfDiff } from "../github";
 
   let contents: Element
   let showFileTree = true
@@ -30,10 +31,11 @@
       .filter(e => e.parentElement && e.parentElement.matches('.patcher-right g.box'))
     const right = rightCandidates.length ? rightCandidates[0].parentElement : undefined
 
-    const selectEvent: SelectEvent
-      = new CustomEvent('box-select', { bubbles: true, cancelable: true})
-    if ( left && left instanceof SVGElement ) { selectEvent.targetLeft = left }
-    if ( right && right instanceof SVGElement ) { selectEvent.targetRight = right }
+    const detail: {[side in SideOfDiff]?: SVGElement} = {}
+    const selectEvent
+      = new CustomEvent('box-select', { bubbles: true, cancelable: true, detail })
+    if ( left && left instanceof SVGElement ) { selectEvent.detail.left = left }
+    if ( right && right instanceof SVGElement ) { selectEvent.detail.right = right }
 
     parent.dispatchEvent(selectEvent)
   }

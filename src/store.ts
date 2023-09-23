@@ -1,6 +1,6 @@
 import { writable, type Writable, derived } from 'svelte/store';
-import { MaxPat } from './maxpat2svg'
-import { type DiffItem } from './github'
+import { MaxPat, Box } from './maxpat2svg'
+import { type DiffItem, type SideOfDiff } from './github'
 import { makeTree } from './util'
 
 export type MaxPatFile = {
@@ -40,3 +40,6 @@ export const diffOpacity = derived(opacityBalance, ($opacityBalance) => {
     left: 1.0 - v
   }
 })
+
+export const selecting: Writable<boolean> = writable(false)
+export const selected: Writable<{[side in SideOfDiff]?: Box}> = writable({})

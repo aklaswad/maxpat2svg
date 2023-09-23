@@ -1,3 +1,5 @@
+import type { SideOfDiff } from "./github"
+
 /**
  * Merge 2 array<T> into array<R>, with looking at common identifier
  * For example, combine these 2 arrays;
@@ -104,4 +106,4 @@ function sortSubTree(root: {[key: string]: any}) {
   return ret
 }
 
-export type SelectEvent = Event & { targetLeft?: SVGElement, targetRight?: SVGElement }
+export type SelectEvent = Event & { diff: { [side in SideOfDiff]?: SVGElement } }
