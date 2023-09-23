@@ -1,6 +1,6 @@
 <script lang="ts">
 
-  import { selected } from '../store'
+  import { selected, showInspector } from '../store'
   import { combineArray, flatten, makeTree, type TreeNode } from '../util';
   import InspectorRow from './InspectorRow.svelte'
 
@@ -20,8 +20,15 @@
     )
     tree = makeTree(combined)
   })
+
+  function closeInspector () {
+    $showInspector = false
+  }
 </script>
 
+<header>
+  <button on:click={closeInspector} class="header-item-right">close</button>
+</header>
 <div id="inspector-content">
   <table>
     {#if tree}
@@ -33,14 +40,29 @@
 </div>
 
 <style>
+  header {
+    position: absolute;
+    display: block;
+    width: 100%;
+    top: 0;
+    z-index: 20;
+    background: #ddd;
+    border-bottom: 1px solid #aaa;
+  }
+
+  .header-item-right {
+    margin: 3px;
+    float: right;
+  }
   table {
-    margin: 5px;
+    margin: 40px 5px;
     display: grid;
     grid-template-columns: minmax(200px, 1fr) 1fr 1fr;
   }
 
-
   #inspector-content {
+    background: #ddd;
+    position: relative;
     width: 100%;
     height: 100%;
     overflow-y: scroll;

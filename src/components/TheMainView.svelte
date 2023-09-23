@@ -14,10 +14,6 @@
     showFileTree = !showFileTree
   }
 
-  function toggleInspector () {
-    $showInspector = !$showInspector
-  }
-
   function handleDiffViewClick(evt: MouseEvent) {
     const possibles = document.elementsFromPoint(evt.clientX, evt.clientY)
     const parentCandidates = possibles
@@ -77,14 +73,6 @@
     <span>
       New <span class="help-keybind">x</span>
     </span>
-    <span>
-      <button on:click={toggleInspector}>
-      {#if $showInspector}
-        hide inspector
-      {:else}
-        show inspector
-      {/if}
-    </span>
   </div>
   {#if $showInspector}
   <div id="inspector">
@@ -100,7 +88,7 @@
   }
 
   header {
-    background-color: rgba(128,128,128,0.5);
+    background-color: #333;
     position: fixed;
     height: var(--header-height);
     top: 0;
@@ -180,7 +168,6 @@
   }
 
   #inspector {
-    background: rgba(200,200,200,0.5);
     height: min(var(--inspector-height), 50vh);
   }
 </style>

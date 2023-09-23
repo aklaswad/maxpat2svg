@@ -49,6 +49,7 @@
   td pre {
     margin: 0;
     padding: 2px;
+    overflow-x: auto;
   }
 
   td.left {
