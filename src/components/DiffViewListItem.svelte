@@ -19,21 +19,7 @@
 
   async function handleSelectEvent (evt: Event) {
     if ( !(evt instanceof CustomEvent) ) return
-
-    document.querySelectorAll('.selected').forEach( (el) => {
-      el.classList.remove('selected')
-    })
-
-    document.querySelectorAll('.selected-connected').forEach( (el) => {
-      el.classList.remove('selected-connected')
-    })
-
-    if ( !evt.detail.left && !evt.detail.right ) {
-      $selecting = false
-      console.log({sel: $selecting})
-      $selected = { left: undefined, right: undefined }
-      return
-    }
+    if ( !( evt.detail.left || evt.detail.right) ) return
     showSVG = true
     $showInspector = true
     $selecting = true

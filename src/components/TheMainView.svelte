@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import { diffItemTree, showInspector, opacityBalance } from "../store";
+  import { diffItemTree, showInspector, opacityBalance, selecting, selected } from "../store";
   import DiffViewList from './DiffViewList.svelte'
   import TheInspector from './TheInspector.svelte'
   import TheFileTree from './TheFileTree.svelte'
@@ -15,6 +15,19 @@
   }
 
   function handleDiffViewClick(evt: MouseEvent) {
+
+    // At first, unselect everything
+    document.querySelectorAll('.selected').forEach( (el) => {
+      el.classList.remove('selected')
+    })
+    document.querySelectorAll('.selected-connected').forEach( (el) => {
+      el.classList.remove('selected-connected')
+    })
+    $selecting = false
+    $selected = { left: undefined, right: undefined }
+    $showInspector = false
+
+    // Look for selected object and it's parent patcher
     const possibles = document.elementsFromPoint(evt.clientX, evt.clientY)
     const parentCandidates = possibles
       .filter(e => e.matches('.patcher-wrapper'))
