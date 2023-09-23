@@ -5,10 +5,10 @@ on:
     types:
       - published
 env:
-  package: ${{ format('{0}-{1}', github.event.repository.name, github.event.release.name) }}
+  package: ${{ format('{0}-{1}', github.event.repository.name, github.event.release.tag_name) }}
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   upload-asset:
@@ -25,9 +25,10 @@ jobs:
           cd "$package"
           npm ci
           npm run build
-          rm -rf node_modules
           cd ../
-          zip -r "${package}.zip" "${package}/"
+          zip -r "${package}.zip" "${package}/" \
+            -x "${package}/.git/*" \
+            -x "${package}/node_modules/*"
       - name: Upload asset
         env:
           token: ${{ github.token }}
