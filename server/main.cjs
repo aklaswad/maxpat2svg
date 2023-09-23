@@ -73,7 +73,7 @@ async function handleLocalDiff(args) {
         ( async (fn) => {
           files[fn] = Object.assign(
             files[fn],
-            await getFileContentForDiff(leftFiles[fn], rightFiles[fn])
+            { rawContent: await getFileContentForDiff(leftFiles[fn], rightFiles[fn]) }
           )
         } )(fn)
       )
