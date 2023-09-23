@@ -19,8 +19,18 @@
 
   async function handleSelectEvent (evt: Event) {
     if ( !(evt instanceof CustomEvent) ) return
+
+    document.querySelectorAll('.selected').forEach( (el) => {
+      el.classList.remove('selected')
+    })
+
+    document.querySelectorAll('.selected-connected').forEach( (el) => {
+      el.classList.remove('selected-connected')
+    })
+
     if ( !evt.detail.left && !evt.detail.right ) {
       $selecting = false
+      console.log({sel: $selecting})
       $selected = { left: undefined, right: undefined }
       return
     }
@@ -33,6 +43,11 @@
       if ( !target ) continue
       if ( !target.dataset.parentPath ) continue
       if ( !target.dataset.boxId ) continue
+      target.classList.add('selected')
+      const connections = target.dataset.connections
+      div.querySelectorAll(connections).forEach( el => {
+        el.classList.add('selected-connected')
+      })
       const maxpat = $diffItemIndex[target.dataset.parentPath].patchers[side]
       if ( maxpat ) {
         const box = maxpat.boxes[target.dataset.boxId]
