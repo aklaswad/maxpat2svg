@@ -43,17 +43,25 @@ Currently, tested only with git-bash for windows.
 
 ### Set up for local git
 
- 1. Clone this repository to your local machine
- 2. Add this section to `~/.gitconfig` or project's `.git/config`
+ 1. Download latest release `maxpat2svg-*.zip` from https://github.com/aklaswad/maxpat2svg/releases
+ 2. Unzip and put it somewhere you want
+ 3. Add this section to `~/.gitconfig` or project's `.git/config`
 
 ```gitconfig
 [difftool "max"]
   cmd = '/path/to/maxpat2svg/maxdiff.sh' $LOCAL $REMOTE
 ```
 
- 3. Open diff via `git difftool`
+On windows(git-bash), it might be like below
 
+```gitconfig
+[difftool "max"]
+	cmd = 'C:/Users/foo/bar/maxpat2svg-vX.Y.Z/maxdiff.sh' $LOCAL $REMOTE
 ```
+
+ 4. Open diff via `git difftool` for your git project
+
+```bash
 $ git difftool -d -t max
 ```
 
