@@ -1,8 +1,8 @@
 <script lang="ts">
   import DiffViewListItem from './DiffViewListItem.svelte'
+  import { type TreeNode } from '../util';
 
-  type FileInTree = { path: string[]; item?: any; nodes?: FileInTree[] };
-  export let nodes: FileInTree[];
+  export let nodes: TreeNode[];
   //  export let tryExtend: boolean = true
 </script>
 

@@ -45,7 +45,8 @@
       subs.forEach( file => flatDict[file.fullPath || ''] = file)
       file.subPatchers = subs
       const subtree = makeTree( subs.map( s => ({ path: s.path || [], item: s }) ) )
-      file.subPatcherTree = Object.keys(subtree).length ? subtree[Object.keys(subtree)[0]].nodes : []
+      console.log(subtree)
+      file.subPatcherTree = subtree.length ? subtree[0].nodes : []
 
       file.path = file.name?.split(/[\/\\]/g)
       file.same = deepEqual(file.patchers.left?.patcher, file.patchers.right?.patcher)

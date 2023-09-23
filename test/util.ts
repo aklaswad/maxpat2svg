@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { makeTree } from '../src/util'
+import { makeTree, flatten } from '../src/util'
 
 describe('makeTree', () => {
   it('can build tree', () => {
@@ -45,6 +45,22 @@ describe('makeTree', () => {
           }
         ]
       }
+    ])
+  })
+})
+
+describe('flatten', () => {
+  it('modify tree into flat array', () => {
+    const original = {
+      foo: {
+        bar: 42,
+        baz: [ "fizz", { buzz: 5 }]
+      }
+    }
+    expect(flatten(original)).to.deep.equal([
+      { path: ['foo', 'bar'], item: 42},
+      { path: ['foo', 'baz', 0], item: "fizz" },
+      { path: ['foo', 'baz', 1, 'buzz'], item: 5}
     ])
   })
 })

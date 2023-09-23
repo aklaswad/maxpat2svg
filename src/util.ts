@@ -58,12 +58,38 @@ export function deepEqual(left: any, right: any) {
   return deepEqual(Object.entries(left).sort(), Object.entries(right).sort())
 }
 
+function _strCmp (a: string, b: string) {
+  return a < b ? -1
+       : b < a ?  1
+       :          0
+}
+/**
+ *
+ * @param obj object to be flatten
+ */
+export function flatten (obj: unknown, path: (string|number)[] = []): { path: (string|number)[], item: any }[] {
+  if ( Array.isArray(obj) ) {
+    return obj
+    .flatMap((item,idx) => flatten(item, [...path, idx]))
+    .sort((a,b) => _strCmp(a.path.join('/'), b.path.join('/')))
+  }
+  else if ( obj instanceof Object && obj != null ) {
+    return Object.entries(obj)
+      .flatMap(entry => flatten(entry[1], [...path, entry[0]]))
+      .sort((a,b) => _strCmp(a.path.join('/'), b.path.join('/')))
+  }
+  else {
+    return [{ path: path, item: obj }]
+  }
+}
+
+export type TreeNode = { path: string|number, nodes: TreeNode[], item?: any }
 /**
  * see (@link ../test/util.ts) for how this transform the tree
  * @param root
  * @returns
  */
-export function makeTree ( items: {path: string[], item: any }[] ) {
+export function makeTree ( items: {path: (string|number)[], item: any }[] ): TreeNode[] {
   const intermediateTree: any = {}
   for ( const item of items ) {
     let node = intermediateTree

@@ -28,14 +28,15 @@
     $showInspector = true
     $selecting = true
     for ( const side of SidesOfDiff ) {
+      delete $selected[side]
       const target = evt.detail[side]
-      console.log(target.dataset.parentPath, target.dataset.boxId)
-      if ( !target.dataset.parentPath ) return
-      if ( !target.dataset.boxId ) return
+      if ( !target ) continue
+      if ( !target.dataset.parentPath ) continue
+      if ( !target.dataset.boxId ) continue
       const maxpat = $diffItemIndex[target.dataset.parentPath].patchers[side]
       if ( maxpat ) {
         const box = maxpat.boxes[target.dataset.boxId]
-        $selected[side] = box
+        $selected[side] = box.box
       }
     }
   }
