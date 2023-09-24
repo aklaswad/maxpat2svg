@@ -17,7 +17,9 @@ export type DiffItem = {
   id?: string
   isFile?: boolean
   path?: string[]
-  fullPath?: string | null,
+  fullPath?: string | null
+  baseName?: string
+  filePath?: string[]
   sub?: boolean
   name?: string
   same?: boolean

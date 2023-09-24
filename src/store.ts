@@ -26,7 +26,7 @@ export const diffItems: Writable<DiffItem[]> = writable([])
  * Directory tree style of file list. Not includes sub patcher tree.
  */
 export const diffItemTree = derived(diffItems, ($diffItems) => {
-  return makeTree(Object.values($diffItems).map( i => ({ path: i.path || [''], item: i })))
+  return makeTree(Object.values($diffItems).map( i => ({ path: i.filePath || [''], item: i })))
 //  return makeTree($diffItems.map( i => ({ path: i.path || [''], item: i })))
 })
 

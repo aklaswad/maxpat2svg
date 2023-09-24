@@ -27,6 +27,9 @@
       file.path = file.patchers.left  ? file.patchers.left.path
                 : file.patchers.right ? file.patchers.right.path
                 :                       []
+      const filePath = (file.name || 'unnamed file???').split(/\/|\\/)
+      file.filePath = filePath
+      file.baseName = filePath[filePath.length - 1]
       flatDict[file.fullPath || ''] = file
 
       // Extract sub patchers
