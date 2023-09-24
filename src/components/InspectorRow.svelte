@@ -2,6 +2,25 @@
   import { type TreeNode } from "../util";
   export let node: TreeNode
   export let depth = 0
+
+  function stringify(value: any) {
+    if (typeof value === "string" || value instanceof String) {
+      return `"${value}"`
+    }
+    if ( typeof value === 'boolean' ) {
+      return value ? 'true' : 'false'
+    }
+    if ( typeof value === 'undefined' ) {
+      return 'undefined'
+    }
+    if ( typeof value === 'object' && value === null ) {
+      return 'null'
+    }
+    if ( typeof value === 'object' || value instanceof Object) {
+      return 'object? (something wrong...)'
+    }
+    return value
+  }
 </script>
 
 <tr>
@@ -16,9 +35,9 @@
   {/if}
 {:else}
   <th style:padding-left="{depth * 10}px">{node.path}</th>
-  {@const hasDiff = (node.item.left || '') !== (node.item.right || '')}
-  <td class="left" class:has-diff={hasDiff}><pre>{node.item.left || ''}</pre></td>
-  <td class="right" class:has-diff={hasDiff}><pre>{node.item.right || ''}</pre></td>
+  {@const hasDiff = !(stringify(node.item.left) === stringify(node.item.right) && typeof node.item.left === typeof node.item.right)}
+  <td class={`${node.item.left == null ? ' null-item' : 'left'}`} class:has-diff={hasDiff}><pre>{stringify(node.item.left)}</pre></td>
+  <td class={`${node.item.right == null ? ' null-item' : 'right'}`} class:has-diff={hasDiff}><pre>{stringify(node.item.right)}</pre></td>
 
 {/if}
 </tr>
@@ -60,6 +79,10 @@
   td.right {
     background: #efe;
     color: #797;
+  }
+
+  td.null-item {
+    background: rgba(0,0,0,0.0);
   }
 
   td.left.has-diff {
