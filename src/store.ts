@@ -42,4 +42,5 @@ export const diffOpacity = derived(opacityBalance, ($opacityBalance) => {
 })
 
 export const selecting: Writable<boolean> = writable(false)
-export const selected: Writable<{[side in SideOfDiff]?: unknown}> = writable({})
+export const selected: Writable<{[side in SideOfDiff]?: Box}> = writable({})
+export const selectedDiff: Writable<DiffItem> = writable({patchers:{}})

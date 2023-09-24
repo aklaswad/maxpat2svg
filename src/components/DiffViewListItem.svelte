@@ -5,7 +5,7 @@
   import Patcher from "./Patcher.svelte";
   import BoxLink from './BoxLink.svelte'
   import { type SelectEvent } from '../util'
-  import { selecting, selected, diffItemIndex, showInspector } from '../store'
+  import { selecting, selected, selectedDiff, diffItemIndex, showInspector } from '../store'
 
   export let item: DiffItem;
 
@@ -48,7 +48,8 @@
           el.classList.add('selected-connected')
         })
       }
-      $selected[side] = box.box
+      $selected[side] = box
+      $selectedDiff = item
       if ( side === focus ) {
         setTimeout( () => {
           target.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' })
