@@ -47,7 +47,7 @@ a:hover, a:active {
   right: 0;
   margin: 0 5px;
   font-weight: bold;
-  font-size: 1.0rem;
+  font-size: 0.8rem;
 }
 
 .added {

@@ -44,10 +44,12 @@
     position: absolute;
     display: block;
     width: 100%;
+    height: 30px;
     top: 0;
     z-index: 20;
     background: #ddd;
     border-bottom: 1px solid #aaa;
+    border-top: 1px solid #aaa;
   }
 
   .header-item-right {

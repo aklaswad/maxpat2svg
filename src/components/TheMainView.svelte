@@ -114,12 +114,12 @@
 
   #content-wrapper {
     box-sizing: border-box;
-    padding: var(--header-height) 2px 10px 0px;
+    padding: 2px 2px 0 0;
     position: fixed;
-    top: 0;
+    top: var(--header-height);
     left: 0;
     width: 100%;
-    height: 100%;
+    height: calc(100% - var(--header-height));
     overflow-x: hidden;
     overflow-y: auto;
     z-index: 0;
@@ -128,12 +128,12 @@
   }
 
   #content-wrapper.show-tree {
-    padding: var(--header-height) 2px 2px 0;
+    padding: 2px 2px 0 0;
     grid-template-columns: 300px calc(100% - 300px);
   }
 
   #content-wrapper.show-inspector {
-    height: calc(100% - min(var(--inspector-height), 50vh))
+    height: calc(100% - min(var(--inspector-height), 50vh) - var(--header-height))
   }
 
   #file-tree {
@@ -143,15 +143,14 @@
     left: 0;
     overflow-y: auto;
     overflow-x: hidden;
-    background-color: #abc;
     z-index: 30;
-    padding: 4px;
+    padding: 20px 4px 40px 4px;
     box-sizing: border-box;
-    align-self: self-start;
+    align-self: start;
   }
 
   #file-tree.show-inspector {
-    max-height: calc(100vh - min(var(--inspector-height), 50vh))
+    max-height: calc(100vh - min(var(--inspector-height), 50vh) - var(--header-height))
   }
 
   #diff-content-wrapper {
