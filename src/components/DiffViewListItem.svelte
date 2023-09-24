@@ -20,57 +20,24 @@
     showSVG = !showSVG;
   }
 
-  async function handleSelectEvent (evt: Event) {
-    if ( !(evt instanceof CustomEvent) ) return
-    if ( !( evt.detail.left || evt.detail.right) ) return
-    showSVG = true
-    $showInspector = true
-    $selecting = true
-    for ( const side of SidesOfDiff ) {
-      delete $selected[side]
-      const target = evt.detail[side]
-      if ( !target ) continue
-      if ( !target.dataset.parentPath ) continue
-      if ( !target.dataset.boxId ) continue
-      target.classList.add('selected')
-      const connections = target.dataset.connections
-      if ( connections ) {
-        div.querySelectorAll(connections).forEach( el => {
-          el.classList.add('selected-connected')
-        })
-      }
-
-      //XXX: I don't remember why search item from root with parentPath at here...
-      const maxpat = $diffItemIndex[target.dataset.parentPath].patchers[side]
-      if ( maxpat ) {
-        const box = maxpat.boxes[target.dataset.boxId]
-        $selected[side] = box.box
-      }
-    }
-  }
-
-  function selectBox(evt: Event) {
-    if ( !(evt instanceof CustomEvent )) return
-    // At first, unselect everything
+  //XXX: To be moved to main App or store?
+  function resetSelection () {
     document.querySelectorAll('.selected').forEach( (el) => {
       el.classList.remove('selected')
     })
     document.querySelectorAll('.selected-connected').forEach( (el) => {
       el.classList.remove('selected-connected')
     })
-    $selecting = true
-    $showInspector = true
-    const focus = evt.detail['right'] ? 'right' : 'left'
+  }
+
+  function _selectBox (boxes: { left?: Box, right?: Box }, targets: { left?: Element, right?: Element }) {
+    const focus = targets['right'] ? 'right' : 'left'
     for ( const side of SidesOfDiff ) {
       delete $selected[side]
-      const box = evt.detail[side]
-      if ( !box ) continue
-      if ( !div ) continue
-      const target = div.querySelector(`.patcher-${side} g[data-box-id="${box.id}"]`)
-      if ( !target ) continue
-      if ( !(target instanceof SVGElement ) ) continue
-      if ( !target.dataset.parentPath ) continue
-      if ( !target.dataset.boxId ) continue
+      const target = targets[side]
+      const box = boxes[side]
+      if ( !(target instanceof SVGElement) ) continue
+      if ( !(box instanceof Box) ) continue
       target.classList.add('selected')
       const connections = target.dataset.connections
       if ( connections ) {
@@ -78,7 +45,6 @@
           el.classList.add('selected-connected')
         })
       }
-
       $selected[side] = box.box
       if ( side === focus ) {
         setTimeout( () => {
@@ -86,6 +52,47 @@
         }, 1)
       }
     }
+  }
+
+  async function handleSelectEvent (evt: Event) {
+    if ( !(evt instanceof CustomEvent) ) return
+    if ( !( evt.detail.left || evt.detail.right) ) return
+    showSVG = true
+    $showInspector = true
+    $selecting = true
+    const boxes: {left?: Box, right?: Box} = {}
+    for ( const side of SidesOfDiff ) {
+      const target = evt.detail[side]
+      if ( !target ) continue
+      const maxpat = $diffItemIndex[target.dataset.parentPath].patchers[side]
+      if ( maxpat ) {
+        boxes[side] = maxpat.boxes[target.dataset.boxId]
+      }
+    }
+    _selectBox(boxes, evt.detail)
+  }
+
+  function selectBox(evt: Event) {
+    if ( !(evt instanceof CustomEvent )) return
+    resetSelection()
+    $selecting = true
+    $showInspector = true
+    const targets: {left?: Element, right?: Element} = {}
+    for ( const side of SidesOfDiff ) {
+      delete $selected[side]
+      const box = evt.detail[side]
+      if ( !box ) continue
+      if ( !div ) continue
+      const target = div.querySelector(`.patcher-${side} g[data-box-id="${box.id}"]`) || undefined
+      targets[side] = target
+    }
+    _selectBox(evt.detail, targets)
+  }
+
+  function selectOwner () {
+    const parentPath = item.path?.slice(0, item.path.length - 1).join('/')
+    const parent = $diffItemIndex[parentPath]
+    console.log({parent,item})
   }
 
   onMount( () => {

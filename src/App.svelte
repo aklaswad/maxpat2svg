@@ -22,8 +22,11 @@
         file.patchers[side] = new MaxPat(json, null, file.name, `file-${idx}`)
       }
       file.fullPath = file.patchers.left  ? file.patchers.left.fullPath()
-                 : file.patchers.right ? file.patchers.right.fullPath()
-                 :                  null
+                    : file.patchers.right ? file.patchers.right.fullPath()
+                    :                       null
+      file.path = file.patchers.left  ? file.patchers.left.path
+                : file.patchers.right ? file.patchers.right.path
+                :                       []
       flatDict[file.fullPath || ''] = file
 
       // Extract sub patchers
@@ -54,7 +57,6 @@
       const subtree = makeTree( subs.map( s => ({ path: s.path || [], item: s }) ) )
       file.subPatcherTree = subtree.length ? subtree[0].nodes : []
 
-      file.path = file.name?.split(/[\/\\]/g)
       file.same = deepEqual(file.patchers.left?.patcher, file.patchers.right?.patcher)
       file.diff = !file.same && file.patchers.left && file.patchers.right ? file.patchers.right.diffSummaryWith(file.patchers.left) : undefined
       file.patchers.left && file.patchers.right && file.patchers.right.gatherViewBoxWith(file.patchers.left )
