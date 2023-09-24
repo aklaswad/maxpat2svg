@@ -17,7 +17,17 @@
 {:else}
 🔖
 {/if}
-{item.name}</a>
+{item.name}
+{#if !item.same}
+  {#if item.patchers.left && item.patchers.right}
+  <span class="changed modified">&#x22A1;</span>
+  {:else if item.patchers.left}
+  <span class="changed removed">&#x229F;</span>
+  {:else}
+  <span class="changed added">&#x229E;</span>
+  {/if}
+{/if}
+</a>
 
 <style>
 a {
@@ -30,5 +40,23 @@ a {
 
 a:hover, a:active {
   background: #ddd;
+}
+
+.changed {
+  position: absolute;
+  right: 0;
+  margin: 0 5px;
+  font-weight: bold;
+  font-size: 1.0rem;
+}
+
+.added {
+  color: #077a07 !important;
+}
+.modified {
+  color: #a09428 !important;
+}
+.removed {
+  color: #d11414 !important;
 }
 </style>
