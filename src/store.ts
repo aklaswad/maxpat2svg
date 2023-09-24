@@ -34,10 +34,10 @@ export const diffItemIndex: Writable<{[id: string]: DiffItem}> = writable({})
 
 export const opacityBalance: Writable<number> = writable(500)
 export const diffOpacity = derived(opacityBalance, ($opacityBalance) => {
-  const v = $opacityBalance / 1000
+  const v = $opacityBalance / 500
   return {
-    right: v,
-    left: 1.0 - v
+    right: Math.min(1.0, Math.max(0.0, v)),
+    left: Math.min(1.0, Math.max(0.0, 2.0 - v))
   }
 })
 
