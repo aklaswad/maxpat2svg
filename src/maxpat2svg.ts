@@ -154,6 +154,48 @@ function isPatcherData(arg: unknown): arg is PatcherData {
     && 'lines' in arg && Array.isArray(arg.lines) && arg.lines.every(l => isPatchLineNode(l))
 }
 
+function compareDictionary (left: {[key:string]:any}, right: {[key:string]:any}): DiffInfo {
+  const ret: DiffInfo = {
+    hasDifference: false,
+    removed: [],
+    modified: [],
+    added: []
+  }
+  const keys = Object.keys(
+    Object.fromEntries([
+      ...Object.entries(left),
+      ...Object.entries(right)
+    ] ) )
+  for ( const key of keys ) {
+    if ( key in left && key in right ) {
+      if ( deepEqual(left[key], right[key]) ) {
+        continue
+      }
+      ret.hasDifference = true
+      ret.modified.push(key)
+    }
+    else if ( key in left ) {
+      ret.hasDifference = true
+      ret.removed.push(key)
+    }
+    else {
+      ret.hasDifference = true
+      ret.added.push(key)
+    }
+  }
+  return ret
+}
+
+export interface DiffInfo {
+  hasDifference: boolean
+  removed: string[]
+  modified: string[]
+  added: string[]
+}
+
+export type PatcherDiffInfo = {
+  boxes: DiffInfo
+}
 
 type DecoratorResponse = { rect?: BoxDefinition, text?: string }
 type Decorator = (_box: Box, _g: Element, rect: Element) => DecoratorResponse | void
@@ -266,6 +308,7 @@ class Box {
   text: string
   maxclass: string
   class: string // maxclass
+  childPatcher?: MaxPat
   x: number
   y: number
   width: number
@@ -279,7 +322,11 @@ class Box {
     if (!isBoxNode(data)) {
       throw "It's not box"
     }
-    this.box = data.box
+    this.box = Object.assign({}, data.box)
+    if ( this.box.patcher ) {
+      this.childPatcher = new MaxPat(this.box.patcher)
+      delete this.box.patcher
+    }
     this.id = this.box.id
     this.text = data.box.text || ''
     this.maxclass = this.box.maxclass
@@ -492,6 +539,15 @@ class MaxPat {
     this.y = anotherPatcher.y = Math.min(this.y, anotherPatcher.y)
     this.width = anotherPatcher.width = right - this.x
     this.height = anotherPatcher.height = bottom - this.y
+  }
+
+  diffSummaryWith(left: MaxPat) {
+    const right = this
+    const ret = compareDictionary(
+      Object.fromEntries( Object.entries(left.boxes).map( e => [e[0], e[1].box])),
+      Object.fromEntries( Object.entries(right.boxes).map( e => [e[0], e[1].box]))
+    )
+    return ret
   }
 
   isEqualTo(anotherPatcher: MaxPat) {

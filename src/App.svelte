@@ -31,26 +31,33 @@
       const rightSubs = file.patchers.right ? file.patchers.right.subPatchers() : []
       const subs: DiffItem[] = combineArray<MaxPat, DiffItem>(
         p => p.id,
-        (l,r) => ({
-          id: l ? l.id : r ? r.id : 'unknown',
-          sub: true,
-          name: l ? l.name : r ? r.name : 'unknown',
-          path: l ? l.path : r ? r.path : [],
-          fullPath: l ? l.fullPath() : r ? r.fullPath() : null,
-          patchers: { left: l, right: r },
-          same: deepEqual(l,r)
-        }),
+        (l,r) => {
+          const res: DiffItem = {
+            id: l ? l.id : r ? r.id : 'unknown',
+            sub: true,
+            name: l ? l.name : r ? r.name : 'unknown',
+            path: l ? l.path : r ? r.path : [],
+            fullPath: l ? l.fullPath() : r ? r.fullPath() : null,
+            patchers: { left: l, right: r },
+            same: deepEqual(l,r),
+            diff: undefined
+          }
+          if ( l && r && !res.same ) {
+            res.diff = r.diffSummaryWith(l)
+          }
+          return res
+        },
         leftSubs, rightSubs
       )
       subs.forEach( file => flatDict[file.fullPath || ''] = file)
       file.subPatchers = subs
       const subtree = makeTree( subs.map( s => ({ path: s.path || [], item: s }) ) )
-      console.log(subtree)
       file.subPatcherTree = subtree.length ? subtree[0].nodes : []
 
       file.path = file.name?.split(/[\/\\]/g)
       file.same = deepEqual(file.patchers.left?.patcher, file.patchers.right?.patcher)
-      file.patchers.left && file.patchers.right && file.patchers.left.gatherViewBoxWith(file.patchers.right )
+      file.diff = !file.same && file.patchers.left && file.patchers.right ? file.patchers.right.diffSummaryWith(file.patchers.left) : undefined
+      file.patchers.left && file.patchers.right && file.patchers.right.gatherViewBoxWith(file.patchers.left )
     }
 
     $diffItems = files
