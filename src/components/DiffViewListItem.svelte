@@ -51,7 +51,6 @@
 
   function selectBox(evt: Event) {
     if ( !(evt instanceof CustomEvent )) return
-console.log(evt.detail)
     // At first, unselect everything
     document.querySelectorAll('.selected').forEach( (el) => {
       el.classList.remove('selected')
@@ -81,7 +80,6 @@ console.log(evt.detail)
       }
 
       $selected[side] = box.box
-
       if ( side === focus ) {
         setTimeout( () => {
           target.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' })
@@ -126,7 +124,7 @@ console.log(evt.detail)
   {#if item.diff.removed && item.diff.removed.length}
     {#each item.diff.removed as id}
         <BoxLink
-          box={item?.patchers?.left?.boxes[id]}
+          left={item?.patchers?.left?.boxes[id]}
           on:click-box-link={selectBox}
           type="removed" />
     {/each}
@@ -134,7 +132,8 @@ console.log(evt.detail)
   {#if item.diff.modified && item.diff.modified.length}
     {#each item.diff.modified as id}
         <BoxLink
-          box={item?.patchers?.right?.boxes[id]}
+          left={item?.patchers?.left?.boxes[id]}
+          right={item?.patchers?.right?.boxes[id]}
           on:click-box-link={selectBox}
           type="modified" />
     {/each}
@@ -142,7 +141,7 @@ console.log(evt.detail)
   {#if item.diff.added && item.diff.added.length}
     {#each item.diff.added as id}
         <BoxLink
-          box={item?.patchers?.right?.boxes[id]}
+          right={item?.patchers?.right?.boxes[id]}
           on:click-box-link={selectBox}
           type="added" />
     {/each}

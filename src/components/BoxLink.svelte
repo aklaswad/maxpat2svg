@@ -2,10 +2,11 @@
   import { createEventDispatcher } from 'svelte';
   import { Box } from '../maxpat2svg'
 
-  export let box: Box | undefined
+  export let left: Box | undefined = undefined
+  export let right: Box | undefined = undefined
   export let type: 'added' | 'removed' | 'modified' | undefined
 
-  function stringifyBox () {
+  function stringifyBox (box?: Box) {
     let text = box?.text || box?.maxclass || box?.id || 'unknown box'
     if ( text.length > 12 ) {
       text = text.slice(0,12) + '...'
@@ -15,21 +16,20 @@
 
   const dispatch = createEventDispatcher()
   function clickBox () {
-    if ( ! box ) return
+    if ( ! (left || right) ) return
     dispatch('click-box-link', {
-      box: box,
-      left: type !== 'added' ? box : undefined,
-      right: type !== 'removed' ? box : undefined
+      left: left,
+      right: right
     })
   }
 </script>
 
-{#if box}
+{#if (left || right)}
   <button
     on:click|preventDefault|stopPropagation={clickBox}
-    class={box.maxclass + ' ' + type}
+    class={(right || left)?.maxclass + ' ' + type}
   >
-    {stringifyBox()}
+    {stringifyBox(right || left)}
   </button>
 {/if}
 
