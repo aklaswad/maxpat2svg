@@ -31,6 +31,7 @@
   }
 
   function _selectBox (boxes: { left?: Box, right?: Box }, targets: { left?: Element, right?: Element }) {
+    resetSelection()
     const focus = targets['right'] ? 'right' : 'left'
     for ( const side of SidesOfDiff ) {
       delete $selected[side]
@@ -38,6 +39,8 @@
       const box = boxes[side]
       if ( !(target instanceof SVGElement) ) continue
       if ( !(box instanceof Box) ) continue
+      $selecting = true
+      $showInspector = true
       target.classList.add('selected')
       const connections = target.dataset.connections
       if ( connections ) {
@@ -77,32 +80,43 @@
     resetSelection()
     $selecting = true
     $showInspector = true
+    selectByBox(evt.detail)
+  }
+
+  function selectByBox(boxes: {left?: Box, right?: Box}) {
     const targets: {left?: Element, right?: Element} = {}
     for ( const side of SidesOfDiff ) {
-      delete $selected[side]
-      const box = evt.detail[side]
+      const box = boxes[side]
       if ( !box ) continue
       if ( !div ) continue
       const target = div.querySelector(`.patcher-${side} g[data-box-id="${box.id}"]`) || undefined
       targets[side] = target
     }
-    _selectBox(evt.detail, targets)
+    _selectBox(boxes, targets)
   }
 
   function selectOwner () {
-    const parentPath = item.path?.slice(0, item.path.length - 1).join('/')
+    const parentPath = item.path?.slice(0, item.path.length - 1).join('/') || ''
     const parent = $diffItemIndex[parentPath]
-    console.log({parent,item})
+    parent && parent.select && parent.select({
+      left: parent.patchers.left?.boxes[item.id || ''],
+      right: parent.patchers.right?.boxes[item.id || '']
+    })
   }
 
   onMount( () => {
     if ( div ) {
       div.addEventListener("box-select", handleSelectEvent)
     }
-    item.select = async () => {
+    item.select = async (boxes?: {left?: Box, right?: Box}) => {
       showSVG = true;
-      (heading || headingSub)
-        .scrollIntoView({ behavior: 'smooth', block: 'start', inline: 'center' })
+      if ( boxes ) {
+        selectByBox(boxes)
+      }
+      else {
+        (heading || headingSub)
+          .scrollIntoView({ behavior: 'smooth', block: 'start', inline: 'center' })
+      }
     }
     return () => {
       delete item.select
@@ -119,6 +133,7 @@
   <button on:click={toggleSVG}>{#if showSVG}^{:else}v{/if}</button>
   {item.name}
   {#if item.same} (same){/if}
+  <button on:click|preventDefault|stopPropagation={selectOwner}>go to owner</button>
 </h2>
 {:else}
 <h1 class="diff-title" id={item.path?.join('/')} bind:this={heading}>
