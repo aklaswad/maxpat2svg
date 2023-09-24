@@ -60,8 +60,11 @@
       const subtree = makeTree( subs.map( s => ({ path: s.path || [], item: s }) ) )
       file.subPatcherTree = subtree.length ? subtree[0].nodes : []
 
-      file.same = deepEqual(file.patchers.left?.patcher, file.patchers.right?.patcher)
-      file.diff = !file.same && file.patchers.left && file.patchers.right ? file.patchers.right.diffSummaryWith(file.patchers.left) : undefined
+      file.diff = file.patchers.left && file.patchers.right ? file.patchers.right.diffSummaryWith(file.patchers.left)
+                : file.patchers.right                       ? file.patchers.right.diffSummaryWith(undefined)
+                : file.patchers.left                        ? file.patchers.left.diffSummaryWith(undefined, true)
+                :                                             { hasDifference: false, status: 'same' }
+      file.same = !file.diff.hasDifference
       file.patchers.left && file.patchers.right && file.patchers.right.gatherViewBoxWith(file.patchers.left )
     }
 
