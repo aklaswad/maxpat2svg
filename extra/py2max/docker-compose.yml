@@ -1,0 +1,8 @@
+services:
+  py2max:
+    build:
+      context: .
+    volumes:
+      - ../../:/work
+    working_dir: /work/extra/py2max
+    command: ["python", "all-classes.py"]
