@@ -48,9 +48,7 @@
             same: deepEqual(l,r),
             diff: undefined
           }
-          if ( l && r && !res.same ) {
-            res.diff = r.diffSummaryWith(l)
-          }
+          res.diff = r?.diffSummaryWith(l)
           return res
         },
         leftSubs, rightSubs

@@ -4,6 +4,7 @@
   import { Box, MaxPat } from "../maxpat2svg";
   import Patcher from "./Patcher.svelte";
   import BoxLink from './BoxLink.svelte'
+  import PatcherDiffInfo from "./PatcherDiffInfo.svelte";
   import { type SelectEvent } from '../util'
   import { selecting, selected, selectedDiff, diffItemIndex, showInspector } from '../store'
 
@@ -133,14 +134,14 @@
 <h2 class="diff-title diff-subpatcher-title" id={item.path?.join('/')} bind:this={headingSub}>
   <button on:click={toggleSVG}>{#if showSVG}^{:else}v{/if}</button>
   {item.name}
-  {#if item.same} (same){/if}
+  <PatcherDiffInfo info={item.diff} />
   <button on:click|preventDefault|stopPropagation={selectOwner}>go to owner</button>
 </h2>
 {:else}
 <h1 class="diff-title" id={item.path?.join('/')} bind:this={heading}>
   <button on:click={toggleSVG}>{#if showSVG}^{:else}v{/if}</button>
   {item.name}
-  {#if item.same} (same){/if}
+  <PatcherDiffInfo info={item.diff} />
 </h1>
 {/if}
 {#if item.diff && item.diff.status === 'modified'}
