@@ -27,6 +27,7 @@
   }
 
   function visitSubPatcher () {
+    if ( ! $selectedDiff ) return
     const path = [
       ...($selectedDiff.path || []),
       ($selected.left?.id || $selected.right?.id || '')
@@ -39,6 +40,7 @@
   }
 </script>
 
+{#if $selectedDiff}
 <header>
   <ul class="target-path">{#each $selectedDiff.path || [] as pathFragment}<li>{pathFragment}</li>{/each}</ul>
   <h1 class="target-id">{$selected.left?.id || $selected.right?.id}</h1>
@@ -56,6 +58,7 @@
     {/if}
   </table>
 </div>
+{/if}
 
 <style>
   header {
