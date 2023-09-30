@@ -3,71 +3,82 @@
   import TheMainView from './components/TheMainView.svelte'
   import { diffItems, opacityBalance, diffItemIndex } from './store'
   import { fetchFromGitHub, type GitHubURLType, SidesOfDiff } from "./github"
-  import { type DiffItem } from './types'
+  import { type DiffItem, type DiffSource, type SideOfDiff } from './types'
   import { combineArray, deepEqual, makeTree } from './util'
-  import MaxPat from './maxpat2svg';
+  import { MaxPat, patcherDiffSummary } from './maxpat2svg';
 
-  function setUpFileList (files: DiffItem[]) {
+  function setUpFileList (sources: DiffSource[]) {
     const flatDict: {[id: string]: DiffItem} = {}
-
-    for ( const idx in files ) {
-      const file = files[idx]
-      file.isFile = true
-      file.id = `file-${idx}`
-      file.rawContent ??= {}
-      file.patchers ??= {}
+    const diffs: DiffItem[] = []
+    for ( const idx in sources ) {
+      const src = sources[idx]
+      const isFile = true
+      const id = `file-${idx}`
+      const patchers: { [side in SideOfDiff]: MaxPat | null } = { left: null, right: null }
       for ( const side of SidesOfDiff ) {
-        const raw = file.rawContent[side]
+        const raw = src.rawContent[side]
         if ( !raw || raw == null ) continue
         const json = JSON.parse(raw)
-        file.patchers[side] = new MaxPat(json, null, file.name, `file-${idx}`)
+        patchers[side] = new MaxPat(json, null, src.name, `file-${idx}`)
       }
-      file.fullPath = file.patchers.left  ? file.patchers.left.fullPath()
-                    : file.patchers.right ? file.patchers.right.fullPath()
-                    :                       null
-      file.path = file.patchers.left  ? file.patchers.left.path
-                : file.patchers.right ? file.patchers.right.path
-                :                       []
-      const filePath = (file.name || 'unnamed file???').split(/\/|\\/)
-      file.filePath = filePath
-      file.baseName = filePath[filePath.length - 1]
-      flatDict[file.fullPath || ''] = file
+      const fullPath = patchers.left  ? patchers.left.fullPath()
+                     : patchers.right ? patchers.right.fullPath()
+                     :                  null
+      const path = patchers.left  ? patchers.left.path
+                 : patchers.right ? patchers.right.path
+                 :                  []
+      const filePath = (src.name || 'unnamed file???').split(/\/|\\/)
+      const baseName = filePath[filePath.length - 1]
 
       // Extract sub patchers
-      const leftSubs  = file.patchers.left ? file.patchers.left.subPatchers() : []
-      const rightSubs = file.patchers.right ? file.patchers.right.subPatchers() : []
+      const leftSubs  = patchers.left ? patchers.left.subPatchers() : []
+      const rightSubs = patchers.right ? patchers.right.subPatchers() : []
       const subs: DiffItem[] = combineArray<MaxPat, DiffItem>(
         p => p.id,
         (l,r) => {
+          const diff = patcherDiffSummary(l,r)
           const res: DiffItem = {
             id: l ? l.id : r ? r.id : 'unknown',
             sub: true,
             name: l ? l.name : r ? r.name : 'unknown',
             path: l ? l.path : r ? r.path : [],
             fullPath: l ? l.fullPath() : r ? r.fullPath() : null,
-            patchers: { left: l, right: r },
+            patchers: { left: l || null, right: r || null },
             same: deepEqual(l,r),
-            diff: undefined
+            diff: diff,
+            isFile: false,
+            status: diff.status,
+
           }
-          res.diff = r?.diffSummaryWith(l)
           return res
         },
         leftSubs, rightSubs
       )
-      subs.forEach( file => flatDict[file.fullPath || ''] = file)
-      file.subPatchers = subs
+      subs.forEach( file => {
+        diffs.push(file)
+        flatDict[file.fullPath || ''] = file
+      })
+      const subPatchers = subs
       const subtree = makeTree( subs.map( s => ({ path: s.path || [], item: s }) ) )
-      file.subPatcherTree = subtree.length ? subtree[0].nodes : []
+      const subPatcherTree = subtree.length ? subtree[0].nodes : []
 
-      file.diff = file.patchers.left && file.patchers.right ? file.patchers.right.diffSummaryWith(file.patchers.left)
-                : file.patchers.right                       ? file.patchers.right.diffSummaryWith(undefined)
-                : file.patchers.left                        ? file.patchers.left.diffSummaryWith(undefined, true)
-                :                                             { hasDifference: false, status: 'same' }
-      file.same = !file.diff.hasDifference
-      file.patchers.left && file.patchers.right && file.patchers.right.gatherViewBoxWith(file.patchers.left )
+      const diff = patcherDiffSummary(patchers.left, patchers.right)
+      const same = !diff.hasDifference
+      patchers.left && patchers.right && patchers.right.gatherViewBoxWith(patchers.left )
+      const diffItem = {
+        isFile, id, patchers, fullPath, path, filePath, baseName,
+        subPatchers, subPatcherTree, diff,
+        name: src.name,
+        status: src.status,
+        rawContent: src.rawContent,
+        same: !diff.hasDifference,
+        sub: false,
+      }
+      flatDict[fullPath || ''] = diffItem
+      diffs.push(diffItem)
     }
 
-    $diffItems = files
+    $diffItems = diffs
     $diffItemIndex = flatDict
   }
 

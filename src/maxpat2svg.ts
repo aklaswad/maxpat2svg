@@ -206,6 +206,13 @@ export type PatcherDiffInfoModified = {
 }
 export type PatcherDiffInfo = PatcherDiffInfoAdded | PatcherDiffInfoRemoved | PatcherDiffInfoSame | PatcherDiffInfoModified
 
+export function patcherDiffSummary(left: MaxPat | undefined | null, right: MaxPat | undefined | null): PatcherDiffInfo {
+  return left && right? right.diffSummaryWith(left)
+  : right     ? { hasDifference: true, status: 'added' }
+  : left      ? { hasDifference: true, status: 'removed' }
+  :             { hasDifference: false, status: 'same' }
+}
+
 type DecoratorResponse = { rect?: BoxDefinition, text?: string }
 type Decorator = (_box: Box, _g: Element, rect: Element) => DecoratorResponse | void
 

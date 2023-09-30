@@ -1,5 +1,7 @@
 import {MaxPat, Box, type PatcherDiffInfo} from './maxpat2svg'
 
+export type SideOfDiff = 'left' | 'right'
+export type DiffStatus = 'added' | 'removed' | 'modified' | 'same' | 'invalid'
 export type DiffSourceAdded = {
   name: string
   status: 'added'
@@ -32,18 +34,19 @@ export type DiffSource
 
 
 export type DiffItem = {
-  id?: string
-  isFile?: boolean
-  path?: string[]
-  fullPath?: string | null
+  id: string
+  status: DiffStatus
+  isFile: boolean
+  path: string[]
+  fullPath: string | null
   baseName?: string
   filePath?: string[]
-  sub?: boolean
-  name?: string
-  same?: boolean
-  diff?: PatcherDiffInfo
-  rawContent?: { [side in SideOfDiff]?: string | null }
-  patchers: { [side in SideOfDiff]?: MaxPat | null }
+  sub: boolean
+  name: string
+  same: boolean
+  diff: PatcherDiffInfo
+  rawContent?: { [side in SideOfDiff]: string | null }
+  patchers: { [side in SideOfDiff]: MaxPat | null }
   subPatchers?: DiffItem[]
   subPatcherTree?: any
   select?: (boxes?: {left?: Box, right?: Box}) => void
