@@ -44,7 +44,6 @@
             path: l ? l.path : r ? r.path : [],
             fullPath: l ? l.fullPath() : r ? r.fullPath() : null,
             patchers: { left: l || null, right: r || null },
-            same: deepEqual(l,r),
             diff: diff,
             isFile: false,
             status: diff.status,
@@ -63,7 +62,6 @@
       const subPatcherTree = subtree.length ? subtree[0].nodes : []
 
       const diff = patcherDiffSummary(patchers.left, patchers.right)
-      const same = !diff.hasDifference
       patchers.left && patchers.right && patchers.right.gatherViewBoxWith(patchers.left )
       const diffItem = {
         isFile, id, patchers, fullPath, path, filePath, baseName,
@@ -71,7 +69,6 @@
         name: src.name,
         status: src.status,
         rawContent: src.rawContent,
-        same: !diff.hasDifference,
         sub: false,
       }
       flatDict[fullPath || ''] = diffItem

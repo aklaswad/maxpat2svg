@@ -18,7 +18,7 @@
 🔖
 {/if}
 {item.baseName || item.name}
-{#if !item.same}
+{#if item.diff.hasDifference}
   {#if item.patchers.left && item.patchers.right}
   <span class="changed modified">&#x22A1;</span>
   {:else if item.patchers.left}

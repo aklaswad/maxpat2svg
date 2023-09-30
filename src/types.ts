@@ -43,7 +43,6 @@ export type DiffItem = {
   filePath?: string[]
   sub: boolean
   name: string
-  same: boolean
   diff: PatcherDiffInfo
   rawContent?: { [side in SideOfDiff]: string | null }
   patchers: { [side in SideOfDiff]: MaxPat | null }
