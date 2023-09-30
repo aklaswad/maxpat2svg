@@ -54,7 +54,6 @@
         leftSubs, rightSubs
       )
       subs.forEach( file => {
-        diffs.push(file)
         flatDict[file.fullPath || ''] = file
       })
       const subPatchers = subs
