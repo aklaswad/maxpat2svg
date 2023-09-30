@@ -11,7 +11,7 @@
 
   export let item: DiffItem;
 
-  let showSVG = !item.same;
+  let showSVG = item.diff.hasDifference;
   let div: Element
   let heading: Element
   let headingSub: Element

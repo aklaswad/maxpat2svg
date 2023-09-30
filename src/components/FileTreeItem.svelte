@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { type DiffItem } from '../github'
+  import { type DiffItem } from '../types'
   export let item: DiffItem
 
   function handleFileNameClick (evt: MouseEvent) {
