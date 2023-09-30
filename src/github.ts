@@ -1,4 +1,5 @@
 import {MaxPat, Box, type PatcherDiffInfo} from './maxpat2svg'
+import { type DiffSource, type SideOfDiff } from './types'
 
 // GitHub support
 const fetchOptionJSON: RequestInit = {
@@ -9,27 +10,9 @@ const fetchOptionJSON: RequestInit = {
   }
 }
 
-export type SideOfDiff = 'left' | 'right'
 export const SidesOfDiff: SideOfDiff[] = ['left', 'right']
 
 type GHResponseFileNode = { filename: string, status: string }
-export type DiffItem = {
-  id?: string
-  isFile?: boolean
-  path?: string[]
-  fullPath?: string | null
-  baseName?: string
-  filePath?: string[]
-  sub?: boolean
-  name?: string
-  same?: boolean
-  diff?: PatcherDiffInfo
-  rawContent?: { [side in SideOfDiff]?: string | null }
-  patchers: { [side in SideOfDiff]?: MaxPat | null }
-  subPatchers?: DiffItem[]
-  subPatcherTree?: any
-  select?: (boxes?: {left?: Box, right?: Box}) => void
-}
 
 async function fetchContent(owner: string, repo: string, path: string, ref: string) {
   const url = `https://raw.githubusercontent.com/${owner}/${repo}/${ref ? ref + '/' : ''}${path}`
@@ -40,33 +23,49 @@ async function fetchContent(owner: string, repo: string, path: string, ref: stri
 
 // TODO: Throttle
 async function resolveFiles(owner: string, repo: string, leftRef: string, rightRef: string, fileList: GHResponseFileNode[] ) {
-  const files: DiffItem[] = fileList.map(f => ({} as DiffItem))
+  const files: DiffSource[] = []
+  // = fileList.map(f => ({} as DiffSource))
   const workers = []
   for (const idx in fileList) {
     const file = fileList[idx]
 
     if (! /\.max(pat|help)/.test(file.filename)) {
-      files[idx].rawContent = { left: null, right: null }
+      files[idx]  = {
+        name: file.filename,
+        status: 'invalid',
+        rawContent: { left: null, right: null }
+      }
     }
     else if (file.status === 'added') {
-      workers.push((async () => files[idx].rawContent = {
-        left: null,
-        right: await fetchContent(owner, repo, file.filename, rightRef)
+      workers.push((async () => files[idx] = {
+        name: file.filename,
+        status: 'added',
+        rawContent: {
+          left: null,
+          right: await fetchContent(owner, repo, file.filename, rightRef)
+        }
       })())
     }
     else if (file.status === 'removed') {
-      workers.push((async () => files[idx].rawContent = {
-        left: await fetchContent(owner, repo, file.filename, leftRef),
-        right: null
+      workers.push((async () => files[idx] = {
+        name: file.filename,
+        status: 'removed',
+        rawContent: {
+          left: await fetchContent(owner, repo, file.filename, leftRef),
+          right: null
+        }
       })())
     }
     else {
-      workers.push((async () => files[idx].rawContent = {
-        left: await fetchContent(owner, repo, file.filename, leftRef),
-        right: await fetchContent(owner, repo, file.filename, rightRef)
+      workers.push((async () => files[idx] = {
+        name: file.filename,
+        status: 'modified',
+        rawContent: {
+          left: await fetchContent(owner, repo, file.filename, leftRef),
+          right: await fetchContent(owner, repo, file.filename, rightRef)
+        }
       })())
     }
-    files[idx]['name'] = file.filename
   }
   await Promise.all(workers)
   return files

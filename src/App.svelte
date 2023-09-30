@@ -2,7 +2,8 @@
   import './style.css'
   import TheMainView from './components/TheMainView.svelte'
   import { diffItems, opacityBalance, diffItemIndex } from './store'
-  import { fetchFromGitHub, type GitHubURLType, type DiffItem, SidesOfDiff } from "./github"
+  import { fetchFromGitHub, type GitHubURLType, SidesOfDiff } from "./github"
+  import { type DiffItem } from './types'
   import { combineArray, deepEqual, makeTree } from './util'
   import MaxPat from './maxpat2svg';
 

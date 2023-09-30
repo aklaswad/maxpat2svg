@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount, tick } from "svelte";
-  import { type DiffItem, SidesOfDiff } from "../github";
+  import { SidesOfDiff } from "../github";
+  import { type DiffItem } from '../types'
   import { Box, MaxPat } from "../maxpat2svg";
   import Patcher from "./Patcher.svelte";
   import BoxLink from './BoxLink.svelte'
