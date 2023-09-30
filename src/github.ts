@@ -1,4 +1,4 @@
-import {MaxPat, Box, type DiffInfo} from './maxpat2svg'
+import {MaxPat, Box, type PatcherDiffInfo} from './maxpat2svg'
 
 // GitHub support
 const fetchOptionJSON: RequestInit = {
@@ -23,7 +23,7 @@ export type DiffItem = {
   sub?: boolean
   name?: string
   same?: boolean
-  diff?: DiffInfo
+  diff?: PatcherDiffInfo
   rawContent?: { [side in SideOfDiff]?: string | null }
   patchers: { [side in SideOfDiff]?: MaxPat | null }
   subPatchers?: DiffItem[]

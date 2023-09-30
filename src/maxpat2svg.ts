@@ -137,8 +137,8 @@ type PatcherNode = {
 type PatcherData = {
   default_fontsize: number,
   default_fontname: string,
-  boxes: BoxNode[]
-  lines: PatchLineNode[]
+  boxes?: BoxNode[]
+  lines?: PatchLineNode[]
 }
 
 function isPatcherNode(arg: unknown): arg is PatcherNode {
@@ -193,9 +193,18 @@ export interface DiffInfo {
   added: string[]
 }
 
-export type PatcherDiffInfo = {
+export type PatcherDiffInfoAdded = { hasDifference: true, status: 'added' }
+export type PatcherDiffInfoRemoved = { hasDifference: true, status: 'removed' }
+export type PatcherDiffInfoSame = { hasDifference: false, status: 'same' }
+
+export type PatcherDiffInfoModified = {
+  hasDifference: true
+  status: 'modified'
   boxes: DiffInfo
+  lines?: DiffInfo
+  attributes: DiffInfo
 }
+export type PatcherDiffInfo = PatcherDiffInfoAdded | PatcherDiffInfoRemoved | PatcherDiffInfoSame | PatcherDiffInfoModified
 
 type DecoratorResponse = { rect?: BoxDefinition, text?: string }
 type Decorator = (_box: Box, _g: Element, rect: Element) => DecoratorResponse | void
@@ -479,11 +488,12 @@ class MaxPat {
     if (!patcher.patcher) {
       return this
     }
+    if ( !patcher.patcher.lines ) return
+    if ( !patcher.patcher.boxes ) return
     const boxList = patcher.patcher.boxes
     if (boxList.length === 0) {
       return this
     }
-    this.patcher = patcher.patcher
 
     let minX = Number.POSITIVE_INFINITY, minY = Number.POSITIVE_INFINITY, maxX = Number.NEGATIVE_INFINITY, maxY = Number.NEGATIVE_INFINITY;
     for (const boxData of boxList) {
@@ -504,7 +514,7 @@ class MaxPat {
     this.width = maxX - minX + 40
     this.height = maxY - minY + 40
 
-    this.lines = this.patcher.lines as PatchLineNode[]
+    this.lines = patcher.patcher.lines as PatchLineNode[]
     for (const line of this.lines) {
       const src = line.patchline.source
       const dst = line.patchline.destination
@@ -519,6 +529,10 @@ class MaxPat {
         console.warn('Found patchline connecting to non existing box.', line)
       }
     }
+    this.patcher = Object.assign({}, patcher.patcher)
+    this.patcher.lines && delete this.patcher.lines
+    delete this.patcher.boxes
+    delete this.patcher.lines
   }
 
   subPatchers(parentName: string = '', parentId: string = ''): MaxPat[] {
@@ -541,13 +555,35 @@ class MaxPat {
     this.height = anotherPatcher.height = bottom - this.y
   }
 
-  diffSummaryWith(left: MaxPat) {
+  diffSummaryWith(left: MaxPat | undefined, reverse: boolean = false): PatcherDiffInfo {
+    if ( !left ) {
+      return {
+        hasDifference: true,
+        status: reverse ? 'removed' : 'added'
+      }
+    }
     const right = this
-    const ret = compareDictionary(
+    const boxes = compareDictionary(
       Object.fromEntries( Object.entries(left.boxes).map( e => [e[0], e[1].box])),
       Object.fromEntries( Object.entries(right.boxes).map( e => [e[0], e[1].box]))
     )
-    return ret
+    const attributes = compareDictionary(
+      left.patcher || {},
+      right.patcher || {}
+    )
+    const hasDifference = boxes.hasDifference || attributes.hasDifference
+    if ( !hasDifference ) {
+      return {
+        status: 'same',
+        hasDifference: false
+      }
+    }
+    return {
+      status: 'modified',
+      hasDifference,
+      boxes,
+      attributes
+    }
   }
 
   isEqualTo(anotherPatcher: MaxPat) {
