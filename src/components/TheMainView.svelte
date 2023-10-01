@@ -5,7 +5,7 @@
   import TheInspector from './TheInspector.svelte'
   import TheFileTree from './TheFileTree.svelte'
   import { type SelectEvent } from "../util";
-  import type { SideOfDiff } from "../github";
+  import type { SideOfDiff } from "../types";
 
   let contents: Element
   let showFileTree = true

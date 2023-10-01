@@ -1,4 +1,4 @@
-import type { SideOfDiff } from "./github"
+import type { SideOfDiff } from "./types"
 
 /**
  * Merge 2 array<T> into array<R>, with looking at common identifier
