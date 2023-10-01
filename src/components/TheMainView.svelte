@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import { diffItemTree, showInspector, opacityBalance, selecting, selected } from "../store";
+  import { title, diffItemTree, showInspector, opacityBalance, selecting, selected } from "../store";
   import DiffViewList from './DiffViewList.svelte'
   import TheInspector from './TheInspector.svelte'
   import TheFileTree from './TheFileTree.svelte'
@@ -64,6 +64,7 @@
   {:else}
     <button on:click={toggleFileTree}>&gt;</button>
   {/if}
+  <h1>{$title}</h1>
 </header>
 
 <div id="content-wrapper" class:show-tree="{showFileTree}" class:show-inspector="{$showInspector}">
@@ -110,6 +111,12 @@
     z-index: 50;
     overflow: hidden;
     box-sizing: border-box;
+  }
+
+  header h1 {
+    color: #fff;
+    display: inline-block;
+    font-size: 0.7rem;
   }
 
   #content-wrapper {

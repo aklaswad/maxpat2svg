@@ -3,6 +3,7 @@ import { MaxPat } from './maxpat2svg'
 import { type DiffItem, type SideOfDiff } from './types'
 import { makeTree } from './util'
 
+export const title: Writable<string> = writable('')
 export type DiffFileItem = {
   name: string,
   id: string

@@ -1,7 +1,7 @@
 <script lang="ts">
   import './style.css'
   import TheMainView from './components/TheMainView.svelte'
-  import { diffItems, opacityBalance, diffItemIndex } from './store'
+  import { title, diffItems, opacityBalance, diffItemIndex } from './store'
   import { fetchFromGitHub, type GitHubURLType, SidesOfDiff } from "./github"
   import { type DiffItem, type DiffSource, type SideOfDiff } from './types'
   import { combineArray, deepEqual, makeTree } from './util'
@@ -84,12 +84,14 @@
       return
     }
     setUpFileList(files)
+    $title = `${type} from ${owner}/${repo}`
   }
 
   async function loadFromLocal(left: string, right: string, reqid: string | null = '') {
     const res = await fetch(`/diff?left=${left}&right=${right}&reqid=${reqid}`)
     const json = await res.json()
     setUpFileList(json)
+    $title = 'Diff from local git'
   }
 
   let loadError: string
@@ -201,6 +203,10 @@
   on:keydown="{keyDown}"
   on:keyup="{keyUp}"
 />
+
+<svelte:head>
+  <title>Max Diff: {$title}</title>
+</svelte:head>
 
 {#await loader}
   <div class="load-progress">
