@@ -110,9 +110,9 @@
 
   function inspectPatcher (evt: Event) {
     resetSelection()
+    $selecting = false
     for ( const side of SidesOfDiff ) {
       delete $selected[side]
-      $selecting = true
       $showInspector = true
 
       $selected[side] = { id: item.id, item: item.patchers[side]?.patcher }
