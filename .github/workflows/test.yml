@@ -16,6 +16,8 @@ jobs:
           path: ${{ env.package }}
       - name: Set up Node
         uses: actions/setup-node@v3
+      - name: Install modules
+        run: npm ci .
       - name: Check
         run: npm run check
       - name: Test
