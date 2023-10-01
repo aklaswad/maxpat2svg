@@ -1,0 +1,22 @@
+name: Automated test
+
+on:
+  push:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out
+        uses: actions/checkout@v3
+        with:
+          path: ${{ env.package }}
+      - name: Set up Node
+        uses: actions/setup-node@v3
+      - name: Check
+        run: npm run check
+      - name: Test
+        run: npm test
