@@ -70,8 +70,8 @@ function _strCmp (a: string, b: string) {
 export function flatten (obj: unknown, path: (string|number)[] = []): { path: (string|number)[], item: any }[] {
   if ( Array.isArray(obj) ) {
     return obj
-    .flatMap((item,idx) => flatten(item, [...path, idx]))
-    .sort((a,b) => _strCmp(a.path.join('/'), b.path.join('/')))
+      .flatMap((item,idx) => flatten(item, [...path, idx]))
+      .sort((a,b) => _strCmp(a.path.join('/'), b.path.join('/')))
   }
   else if ( obj instanceof Object && obj != null ) {
     return Object.entries(obj)

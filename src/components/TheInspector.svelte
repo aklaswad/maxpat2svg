@@ -15,8 +15,8 @@
           item: {left: left?.item, right: right?.item}
         }
       },
-      flatten(selected.left?.box || {}),
-      flatten(selected.right?.box || {})
+      flatten(selected.left?.item || {}),
+      flatten(selected.right?.item || {})
     )
     tree = makeTree(combined)
   })

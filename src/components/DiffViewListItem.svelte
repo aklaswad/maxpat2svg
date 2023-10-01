@@ -7,7 +7,7 @@
   import BoxLink from './BoxLink.svelte'
   import PatcherDiffInfo from "./PatcherDiffInfo.svelte";
   import { type SelectEvent } from '../util'
-  import { selecting, selected, selectedDiff, diffItemIndex, showInspector } from '../store'
+  import { selecting, selected, selectedDiff, diffItemIndex, showInspector, type InspectTarget } from '../store'
 
   export let item: DiffItem;
 
@@ -50,7 +50,8 @@
           el.classList.add('selected-connected')
         })
       }
-      $selected[side] = box
+
+      $selected[side] = { id: box.id, item: box.box, childPatcher: box.childPatcher }
       $selectedDiff = item
       if ( side === focus ) {
         setTimeout( () => {
@@ -107,6 +108,18 @@
     })
   }
 
+  function inspectPatcher (evt: Event) {
+    resetSelection()
+    for ( const side of SidesOfDiff ) {
+      delete $selected[side]
+      $selecting = true
+      $showInspector = true
+
+      $selected[side] = { id: item.id, item: item.patchers[side]?.patcher }
+      $selectedDiff = item
+    }
+  }
+
   onMount( () => {
     if ( div ) {
       div.addEventListener("box-select", handleSelectEvent)
@@ -136,6 +149,7 @@
   <button on:click={toggleSVG}>{#if showSVG}^{:else}v{/if}</button>
   {item.name}
   <PatcherDiffInfo info={item.diff} />
+  <button on:click|preventDefault|stopPropagation={inspectPatcher}>inspect</button>
   <button on:click|preventDefault|stopPropagation={selectOwner}>go to owner</button>
 </h2>
 {:else}
@@ -143,6 +157,7 @@
   <button on:click={toggleSVG}>{#if showSVG}^{:else}v{/if}</button>
   {item.name}
   <PatcherDiffInfo info={item.diff} />
+  <button on:click|preventDefault|stopPropagation={inspectPatcher}>inspect</button>
 </h1>
 {/if}
 {#if item.diff && item.diff.status === 'modified'}
