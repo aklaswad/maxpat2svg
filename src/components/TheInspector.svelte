@@ -47,7 +47,7 @@
   {#if $selected.left?.childPatcher || $selected.right?.childPatcher}
   <button on:click={visitSubPatcher}>visit sub patcher</button>
   {/if}
-  <button on:click={closeInspector} class="header-item-right">close</button>
+  <button on:click={closeInspector}>close</button>
 </header>
 <div id="inspector-content">
   <table>
@@ -71,11 +71,6 @@
     background: #ddd;
     border-bottom: 1px solid #aaa;
     border-top: 1px solid #aaa;
-  }
-
-  .header-item-right {
-    margin: 3px;
-    float: right;
   }
 
   .target-path {
@@ -115,4 +110,19 @@
     overflow-y: scroll;
     overflow-x: hidden;
   }
+
+  button {
+    float: right;
+    margin: 3px;
+    cursor: pointer;
+    border: 0;
+    background: none;
+    color: #444;
+  }
+
+  button:hover {
+    color: #000;
+    text-decoration: underline;
+  }
+
 </style>

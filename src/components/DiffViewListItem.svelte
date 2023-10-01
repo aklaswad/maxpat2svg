@@ -149,15 +149,15 @@
   <button on:click={toggleSVG}>{#if showSVG}^{:else}v{/if}</button>
   {item.name}
   <PatcherDiffInfo info={item.diff} />
-  <button on:click|preventDefault|stopPropagation={inspectPatcher}>inspect</button>
-  <button on:click|preventDefault|stopPropagation={selectOwner}>go to owner</button>
+  <button class="action" on:click|preventDefault|stopPropagation={inspectPatcher}>inspect</button>
+  <button class="action" on:click|preventDefault|stopPropagation={selectOwner}>go to owner</button>
 </h2>
 {:else}
 <h1 class="diff-title" id={item.path?.join('/')} bind:this={heading}>
   <button on:click={toggleSVG}>{#if showSVG}^{:else}v{/if}</button>
   {item.name}
   <PatcherDiffInfo info={item.diff} />
-  <button on:click|preventDefault|stopPropagation={inspectPatcher}>inspect</button>
+  <button class="action" on:click|preventDefault|stopPropagation={inspectPatcher}>inspect</button>
 </h1>
 {/if}
 {#if item.diff && item.diff.status === 'modified'}
@@ -232,6 +232,20 @@
     width: fit-content;
     max-width: 100%;
     overflow-x: auto;
+  }
+
+  button.action {
+    float: right;
+    margin: 3px;
+    cursor: pointer;
+    border: 0;
+    background: none;
+    color: #ddd;
+  }
+
+  button.action:hover {
+    color: #fff;
+    text-decoration: underline;
   }
 
 </style>
