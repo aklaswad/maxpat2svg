@@ -101,7 +101,7 @@
   }
 
   table {
-    margin: 40px 5px;
+    margin: 10px 5px;
     display: grid;
     grid-template-columns: minmax(200px, 1fr) 1fr 1fr;
   }
@@ -109,8 +109,9 @@
   #inspector-content {
     background: #ddd;
     position: relative;
+    top: 30px;
     width: 100%;
-    height: 100%;
+    height: calc(100% - 30px);
     overflow-y: scroll;
     overflow-x: hidden;
   }
