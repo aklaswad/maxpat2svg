@@ -10,7 +10,7 @@ const port = 8074
 const memCache = {}
 
 function maybePatcherFile (fn) {
-  return /\.(?:maxpat|maxhelp)$/.test(fn)
+  return /\.(?:maxpat|maxhelp|gendsp)$/.test(fn)
 }
 
 async function readdirRecursively (dir, files = []) {
