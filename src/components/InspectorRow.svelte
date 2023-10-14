@@ -1,5 +1,6 @@
 <script lang="ts">
-  import { type TreeNode } from "../util";
+  import { type TreeNode } from "../util"
+  import fastDiff from 'fast-diff'
   export let node: TreeNode
   export let depth = 0
 
@@ -36,9 +37,30 @@
 {:else}
   <th style:padding-left="{depth * 10}px">{node.path}</th>
   {@const hasDiff = !(stringify(node.item.left) === stringify(node.item.right) && typeof node.item.left === typeof node.item.right)}
-  <td class={`${node.item.left == null ? ' null-item' : 'left'}`} class:has-diff={hasDiff}><pre>{stringify(node.item.left)}</pre></td>
-  <td class={`${node.item.right == null ? ' null-item' : 'right'}`} class:has-diff={hasDiff}><pre>{stringify(node.item.right)}</pre></td>
-
+  {#if hasDiff}
+    {#if node.item.left == null}
+      <td class={`${node.item.left == null ? ' null-item' : 'has-diff left'}`}><pre>{stringify(node.item.left)}</pre></td>
+      <td class={`${node.item.right == null ? ' null-item' : 'has-diff right'}`}><pre>{stringify(node.item.right)}</pre></td>
+    {:else if node.item.right == null}
+      <td class={`${node.item.left == null ? ' null-item' : 'has-diff left'}`}><pre>{stringify(node.item.left)}</pre></td>
+      <td class={`${node.item.right == null ? ' null-item' : 'has-diff right'}`}><pre>{stringify(node.item.right)}</pre></td>
+    {:else}
+      {@const diff = fastDiff("" + node.item.left, "" + node.item.right)}
+      <td class="left has-diff">
+        <pre>{#each diff as chunk}<span class:is-diff-word={chunk[0]}>{
+          chunk[0] === 1 ? chunk[1].replace(/[^\r\n]/g,'') : chunk[1]
+        }</span>{/each}</pre>
+      </td>
+      <td class="right has-diff">
+        <pre>{#each diff as chunk}<span class:is-diff-word={chunk[0]}>{
+            chunk[0] === -1 ? chunk[1].replace(/[^\r\n]/g,'') : chunk[1]
+        }</span>{/each}</pre>
+      </td>
+    {/if}
+  {:else}
+    <td class={`${node.item.left == null ? ' null-item' : 'left'}`}><pre>{stringify(node.item.left)}</pre></td>
+    <td class={`${node.item.right == null ? ' null-item' : 'right'}`}><pre>{stringify(node.item.right)}</pre></td>
+  {/if}
 {/if}
 </tr>
 
@@ -72,13 +94,13 @@
   }
 
   td.left {
-    background: #fee;
-    color: #977;
+    background: #fffafa;
+    color: #999090;
   }
 
   td.right {
-    background: #efe;
-    color: #797;
+    background: #fafffa;
+    color: #909990;
   }
 
   td.null-item {
@@ -86,13 +108,21 @@
   }
 
   td.left.has-diff {
-    background: #fcc;
-    color: #722;
+    background: #fee;
+    color: #977;
   }
 
   td.right.has-diff {
-    background: #cfc;
-    color: #272;
+    background: #efe;
+    color: #797;
+  }
+  .left span.is-diff-word {
+    background: #fbb;
+    color: #733;
   }
 
+  .right span.is-diff-word {
+    background: #bfb;
+    color: #373;
+  }
 </style>
