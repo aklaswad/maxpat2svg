@@ -16,6 +16,7 @@
       const id = `file-${idx}`
       const patchers: { [side in SideOfDiff]: MaxPat | null } = { left: null, right: null }
       for ( const side of SidesOfDiff ) {
+        if ( !src.rawContent ) continue
         const raw = src.rawContent[side]
         if ( !raw || raw == null ) continue
         const json = JSON.parse(raw)
