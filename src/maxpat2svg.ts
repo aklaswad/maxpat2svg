@@ -108,13 +108,14 @@ function isRectArray(arg: unknown): arg is RectArray {
 type BoxData = {
   id: string
   maxclass: string
-  fontname?: string,
+  fontname?: string
   fontsize?: number
   numinlets: number
   numoutlets: number
   patching_rect: RectArray
   patcher?: PatcherData
-  text?: string,
+  text?: string
+  code?: string
 }
 
 function isBoxData(arg: unknown): arg is BoxData {
@@ -128,6 +129,7 @@ function isBoxData(arg: unknown): arg is BoxData {
     && 'patching_rect' in arg && isRectArray(arg.patching_rect)
     && ('patcher' in arg ? isPatcherData(arg.patcher) : true)
     && ('text' in arg ? typeof arg.text === 'string' : true)
+    && ('code' in arg ? typeof arg.code === 'string' : true)
 }
 
 type PatcherNode = {
@@ -273,6 +275,9 @@ const BoxDecorator: { [name: string]: Decorator } = {
   'number~': function (_box, _g, _rect) {
     // TODO: svg design
     return { text: '~ 0.0' }
+  },
+  codebox: function (_box, _g, _rect) {
+    return { text: `    codebox\n-----------\n` + _box.box.code}
   },
   toggle: function (box, g, _rect) {
     const decoration = document.createElementNS(SVG_NS, "path")
